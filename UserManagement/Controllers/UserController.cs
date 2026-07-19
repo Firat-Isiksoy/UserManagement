@@ -9,47 +9,74 @@ namespace UserManagement.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        [HttpGet]
-        public new ResponseModel GetAllUsers()
+       private readonly AppDbContext _context;
+
+        public UserController(AppDbContext context)
         {
-            return new ResponseModel()
-            {
-                Message = "Liste başarıyla getirildi"
-            };
+            _context = context;
+        }
+           
+        [HttpGet]
+        public IActionResult GetAllUsers()
+        {
+            var users = _context.Users.ToList();
+            return Ok(users);
         }
         [HttpGet("{id}")]
-        public new ResponseModel Get(int id)
+        public IActionResult Get(Guid id)
         {
-            return new ResponseModel()
+            var user = _context.Users.Find(id);
+            if (user == null)
             {
-                Message = "Kullanıcı bulundu"
-            };
+                return NotFound("Kullanıcı bulunamadı.");
+            }
+            return Ok(user);
         }
         [HttpPost]
-        public new ResponseModel Create(UserModel UserModel)
+        public IActionResult Create(UserModel userModel)
         {
-            return new ResponseModel()
+            bool emailKullanimdaMi = _context.Users.Any(u => u.Email == userModel.Email);
+            if (emailKullanimdaMi)
             {
-                Message = "Kullanıcı başarıyla oluşturuldu"
-            };
+                return BadRequest("Bu e-posta adresi zaten kullanılıyor.");
+            }
+            userModel.Id = Guid.NewGuid(); 
+            userModel.CreatedAt = DateTime.UtcNow;
+            userModel.UpdatedAt = DateTime.UtcNow; 
+           
+            _context.Users.Add(userModel);
+            _context.SaveChanges();
+            return Ok("Kullanıcı başarıyla eklendi");
 
         }
         [HttpPut("{id}")]
-        public new ResponseModel Update(int id,UserModel updateduser)
+        public IActionResult Update(Guid id, UserModel updateduser)
         {
-            
-            return new ResponseModel()
+            var user = _context.Users.Find(id);
+            if (user == null)
             {
-                Message = "Kullanıcı başarıyla güncellendi"
-            };
+                return NotFound("Kullanıcı bulunamadı.");
+            }
+            user.FirstName = updateduser.FirstName;
+            user.LastName = updateduser.LastName;
+            user.Email = updateduser.Email;
+            user.UpdatedAt = DateTime.UtcNow;
+            _context.SaveChanges();
+
+            return Ok("Kullanıcı başarıyla güncellendi");
         }
         [HttpDelete("{id}")]
-        public new ResponseModel Delete(int id)
+        public IActionResult Delete(Guid id)
         {
-            return new ResponseModel()
+            var user = _context.Users.Find(id);
+            if (user == null)
             {
-                Message = "Kullanıcı başarıyla silindi"
-            };
+                return NotFound("Kullanıcı bulunamadı.");
+            }
+            _context.Users.Remove(user);
+            _context.SaveChanges();
+
+            return Ok("Kullanıcı başarıyla silindi");
         }
        
     }
