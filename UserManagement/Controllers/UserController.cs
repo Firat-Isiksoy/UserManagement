@@ -38,7 +38,7 @@ namespace UserManagement.Controllers
             bool emailKullanimdaMi = _context.Users.Any(u => u.Email == userModel.Email);
             if (emailKullanimdaMi)
             {
-                return BadRequest("Bu e-posta adresi zaten kullanılıyor.");
+                return BadRequest("Bu e-posta adresi zaten var.");
             }
             userModel.Id = Guid.NewGuid(); 
             userModel.CreatedAt = DateTime.UtcNow;
