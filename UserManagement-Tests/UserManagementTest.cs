@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using UserManagement.Controllers;
+using UserManagement.Services;
 using UserManagement.Models;
 
 namespace UserManagement_Tests
@@ -13,7 +13,7 @@ namespace UserManagement_Tests
             .Options;
 
         private AppDbContext _context;
-        UserController _userController;
+        UserService _userService;
 
         [OneTimeSetUp]
         public void Setup()
@@ -22,7 +22,7 @@ namespace UserManagement_Tests
             _context.Database.EnsureCreated();
 
             SeedDatabase();
-            _userController = new UserController(_context);
+            _userService = new UserService(_context);
         }
         [OneTimeTearDown]
         public void Cleanup()
@@ -45,7 +45,7 @@ namespace UserManagement_Tests
         [Test, Order(1)]
         public void GetAllUsers_ShouldReturnAllUsers_Test()
         {
-            var users = (List<UserModel>)((OkObjectResult)_userController.GetAllUsers()).Value;
+            var users = _userService.GetAll();
             Assert.That(users.Count, Is.EqualTo(4));
             Assert.That(users[0].FirstName, Is.EqualTo("Johnny"));
         }
@@ -53,8 +53,8 @@ namespace UserManagement_Tests
         public void GetUserById_ShouldReturnUser_Test()
         {
             var existingUser = _context.Users.First();
-            var result = (OkObjectResult)_userController.Get(existingUser.Id);
-            var user = (UserModel)result.Value;
+            var user = _userService.GetById(existingUser.Id);
+   
             Assert.That(user, Is.Not.Null);
             Assert.That(user.Id, Is.EqualTo(existingUser.Id));
         }
@@ -67,9 +67,11 @@ namespace UserManagement_Tests
                 LastName = "Doe",
                 Email = "user105@example.com"
             };
-            var result = (OkObjectResult)_userController.Create(newUser);
-            var message = (string)result.Value;
-            Assert.That(message, Is.EqualTo("Kullanýcý baþarýyla eklendi"));
+            var result = _userService.Create(newUser);
+
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Error, Is.Empty);
+
             Assert.That(_context.Users.Count(), Is.EqualTo(5));
 
             var dbUser = _context.Users.FirstOrDefault(u => u.Email == "user105@example.com");
@@ -86,9 +88,11 @@ namespace UserManagement_Tests
                 LastName = "Kazama",
                 Email = "user106@example.com"
             };
-            var result = (OkObjectResult)_userController.Update(existingUser.Id, updatedUser);
-            var message = (string)result.Value;
-            Assert.That(message, Is.EqualTo("Kullanýcý baþarýyla güncellendi"));
+            var result = _userService.Update(existingUser.Id, updatedUser);
+
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Error, Is.Empty);
+
             var dbUser = _context.Users.FirstOrDefault(u => u.Email == "user106@example.com");
             Assert.That(dbUser, Is.Not.Null);
             Assert.That(dbUser.FirstName, Is.EqualTo("Jhin"));
@@ -97,9 +101,10 @@ namespace UserManagement_Tests
         public void DeleteUser_ShouldRemoveUser_Test()
         {
             var existingUser = _context.Users.First();
-            var result = (OkObjectResult)_userController.Delete(existingUser.Id);
-            var message = (string)result.Value;
-            Assert.That(message, Is.EqualTo("Kullanýcý baþarýyla silindi"));
+            var isDeleted = _userService.Delete(existingUser.Id);
+
+            Assert.That(isDeleted, Is.True);
+
             var dbUser = _context.Users.FirstOrDefault(u => u.Id == existingUser.Id);
             Assert.That(dbUser, Is.Null);
         }
