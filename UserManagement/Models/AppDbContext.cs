@@ -8,5 +8,11 @@ namespace UserManagement.Models
         {
         }
         public DbSet<UserModel> Users { get; set; }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<UserModel>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+        }
     }
 }

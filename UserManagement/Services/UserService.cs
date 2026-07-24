@@ -32,6 +32,8 @@ namespace UserManagement.Services
         public (bool Success, string Error) Update(Guid id, UserModel updatedUser)
         {
             var user = _context.Users.Find(id);
+            if (_context.Users.Any(u => u.Email == updatedUser.Email && u.Id != id))
+                return (false, "Bu e-posta adresi zaten var.");
             if (user is null)
                 return (false, "Kullanıcı bulunamadı.");
 
