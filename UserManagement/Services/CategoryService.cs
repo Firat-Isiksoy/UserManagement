@@ -12,15 +12,16 @@ namespace UserManagement.Services
         }
         public List<CategoryModel> GetAll() => _context.Categories.ToList();
         public CategoryModel? GetById(Guid id) => _context.Categories.Find(id);
-        public (bool Success, string Error) Create(CategoryModel category)
+        public (bool Success, string Error, CategoryModel? Category) Create(CategoryModel category)
         {
             category.Id = Guid.NewGuid();
             category.Name = category.Name.Trim();
             category.Movies = new List<MovieModel>();
 
             _context.Categories.Add(category);
-            var result = _context.SaveChanges();
-            return (true, string.Empty);
+            _context.SaveChanges();
+
+            return (true,"Kategori başarıyla eklendi", category);
         }
         public (bool Success, string Error) Update(Guid Id,CategoryModel category)
         {

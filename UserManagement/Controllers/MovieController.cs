@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using UserManagement.Models;
 using UserManagement.Services;
+using UserManagement.DTOs;
 
 namespace UserManagement.Controllers
 {
@@ -22,10 +23,49 @@ namespace UserManagement.Controllers
             return movie is null ? NotFound("Film bulunamadı.") : Ok(movie);
         }
         [HttpPost]
-        public IActionResult Create(MovieModel movieModel)
+        public IActionResult Create(MovieDto request)
         {
-            var (success, error) = _movieService.Create(movieModel);
-            return success ? Ok("Film başarıyla eklendi") : BadRequest(error);
+            var movieModel = new MovieModel
+            {
+                Title = request.Title,
+                Duration = request.Duration,
+                AverageRating = request.AverageRating,
+                ReleaseYear = request.ReleaseYear,
+                Description = request.Description,
+            };
+
+            var (success, error, createdMovie) = _movieService.Create(movieModel);
+
+            if (!success)
+            {
+                return BadRequest(error);
+            }
+            var response = new MovieDto
+            {
+                Title = createdMovie.Title,
+                Duration = createdMovie.Duration,
+                AverageRating = createdMovie.AverageRating,
+                ReleaseYear = createdMovie.ReleaseYear,
+                Description = createdMovie.Description,
+            };
+            return Ok(new
+            {
+                Message = "Film başarıyla eklendi",
+                Data = response
+            });
+        }
+        [HttpPut("{id}")]
+        public IActionResult Update(Guid id, MovieModel updatedMovie)
+        {
+            var (success, error) = _movieService.Update(id, updatedMovie);
+            return success ? Ok("Film başarıyla güncellendi") : NotFound(error);
+
+        }
+        [HttpDelete("{id}")]
+        public IActionResult Delete(Guid id)
+        {
+            var deleted = _movieService.Delete(id);
+            return deleted ? Ok("Film başarıyla silindi") : NotFound("Film bulunamadı");
         }
     }
 }

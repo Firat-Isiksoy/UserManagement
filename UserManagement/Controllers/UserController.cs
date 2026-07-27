@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using UserManagement.Models;
 using UserManagement.Services;
+using UserManagement.DTOs;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -22,12 +23,33 @@ public class UserController : ControllerBase
         var user = _userService.GetById(id);
         return user is null ? NotFound("Kullanıcı bulunamadı.") : Ok(user);
     }
-
     [HttpPost]
-    public IActionResult Create(UserModel userModel)
+    public IActionResult Create(UserDto request)
     {
-        var (success, error) = _userService.Create(userModel);
-        return success ? Ok("Kullanıcı başarıyla eklendi") : BadRequest(error);
+        var userModel = new UserModel
+        {
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Email = request.Email
+        };
+
+        var (success, error, createdUser) = _userService.Create(userModel);
+
+        if (!success)
+        {
+            return BadRequest(error);
+        }
+        var response = new UserDto
+        {
+            FirstName = createdUser.FirstName,
+            LastName = createdUser.LastName,
+            Email = createdUser.Email
+        };
+        return Ok(new
+        {
+            Message = "Kullanıcı başarıyla eklendi",
+            Data = response
+        });
     }
 
     [HttpPut("{id}")]

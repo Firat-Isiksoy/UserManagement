@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace UserManagement.Models
 {
@@ -15,6 +16,7 @@ namespace UserManagement.Models
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public Guid CategoryId { get; set; }
+        [JsonIgnore]
         public CategoryModel? Category { get; set; }
 
     }

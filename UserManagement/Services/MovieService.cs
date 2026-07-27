@@ -12,23 +12,16 @@ namespace UserManagement.Services
             _context = context;
         }
 
-        public (bool Success, string Error) Create(MovieModel movie)
+        public (bool Success, string Error, MovieModel? Movie) Create(MovieModel movie)
         {
-            bool isCategoryExists = _context.Categories.Any(c => c.Id == movie.CategoryId);
-            if (!isCategoryExists)
-                return (false, "Geçersiz KategoriID");
-
             movie.Id = Guid.NewGuid();
             movie.Title = movie.Title.Trim();
-            movie.Description = movie.Description?.Trim();
-
-            movie.AverageRating = 0;
             movie.CreatedAt = DateTime.UtcNow;
-            movie.UpdatedAt = DateTime.UtcNow;
 
             _context.Movies.Add(movie);
             _context.SaveChanges();
-            return (true, "Film başarıyla eklendi");
+
+            return (true,string.Empty, movie);
         }
 
         public List<MovieModel> GetAll() => _context.Movies.ToList();
