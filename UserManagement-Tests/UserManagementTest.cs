@@ -54,11 +54,11 @@ namespace UserManagement_Tests
         {
             var existingUser = _context.Users.First();
             var user = _userService.GetById(existingUser.Id);
-   
+
             Assert.That(user, Is.Not.Null);
             Assert.That(user.Id, Is.EqualTo(existingUser.Id));
         }
-        [Test,Order(3)]
+        [Test, Order(3)]
         public void CreateUser_ShouldAddUser_Test()
         {
             var newUser = new UserModel
