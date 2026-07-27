@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Mvc;
+using UserManagement.DTOs;
 using UserManagement.Models;
 using UserManagement.Services;
-using UserManagement.DTOs;
 
 namespace UserManagement.Controllers
 {
@@ -32,6 +33,7 @@ namespace UserManagement.Controllers
                 AverageRating = request.AverageRating,
                 ReleaseYear = request.ReleaseYear,
                 Description = request.Description,
+                CategoryId = request.CategoryId
             };
 
             var (success, error, createdMovie) = _movieService.Create(movieModel);
@@ -47,6 +49,7 @@ namespace UserManagement.Controllers
                 AverageRating = createdMovie.AverageRating,
                 ReleaseYear = createdMovie.ReleaseYear,
                 Description = createdMovie.Description,
+                CategoryId =createdMovie.CategoryId,
             };
             return Ok(new
             {
@@ -55,10 +58,40 @@ namespace UserManagement.Controllers
             });
         }
         [HttpPut("{id}")]
-        public IActionResult Update(Guid id, MovieModel updatedMovie)
+        public IActionResult Update(Guid id, MovieDto request)
         {
-            var (success, error) = _movieService.Update(id, updatedMovie);
-            return success ? Ok("Film başarıyla güncellendi") : NotFound(error);
+
+            var movieModel = new MovieModel
+            {
+                Id = id,
+                Title = request.Title,
+                Duration = request.Duration,
+                AverageRating = request.AverageRating,
+                ReleaseYear = request.ReleaseYear,
+                Description = request.Description,
+                CategoryId = request.CategoryId
+            };
+
+            var (success, error,updatedMovie) = _movieService.Update(id,movieModel);
+
+            if (!success)
+            {
+                return BadRequest(error);
+            }
+            var response = new MovieDto
+            {
+                Title = updatedMovie.Title,
+                Duration = updatedMovie.Duration,
+                AverageRating = updatedMovie.AverageRating,
+                ReleaseYear = updatedMovie.ReleaseYear,
+                Description = updatedMovie.Description,
+                CategoryId =updatedMovie.CategoryId,
+            };
+            return Ok(new
+            {
+                Message = "Film başarıyla güncellendi",
+                Data = response
+            });
 
         }
         [HttpDelete("{id}")]

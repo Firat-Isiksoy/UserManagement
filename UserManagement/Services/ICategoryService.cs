@@ -7,7 +7,7 @@ namespace UserManagement.Services
     List<CategoryModel> GetAll();
     CategoryModel? GetById(Guid id);
     (bool Success, string Error, CategoryModel? Category) Create(CategoryModel category);
-    (bool Success, string Error) Update(Guid Id, CategoryModel category);
+    (bool Success, string Error, CategoryModel? Category) Update(Guid Id, CategoryModel category);
     bool Delete(Guid id);
     }
 }

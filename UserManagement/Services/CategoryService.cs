@@ -1,4 +1,5 @@
-﻿using UserManagement.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using UserManagement.Models;
 
 namespace UserManagement.Services
 {
@@ -10,8 +11,14 @@ namespace UserManagement.Services
         {
             _context = context;
         }
-        public List<CategoryModel> GetAll() => _context.Categories.ToList();
-        public CategoryModel? GetById(Guid id) => _context.Categories.Find(id);
+        public List<CategoryModel> GetAll()
+        {
+            return _context.Categories.Include(c => c.Movies).ToList();
+        }
+        public CategoryModel? GetById(Guid id)
+        {
+            return _context.Categories.Include(c => c.Movies).FirstOrDefault(c => c.Id == id);
+        }
         public (bool Success, string Error, CategoryModel? Category) Create(CategoryModel category)
         {
             category.Id = Guid.NewGuid();
@@ -21,18 +28,17 @@ namespace UserManagement.Services
             _context.Categories.Add(category);
             _context.SaveChanges();
 
-            return (true,"Kategori başarıyla eklendi", category);
+            return (true,string.Empty, category);
         }
-        public (bool Success, string Error) Update(Guid Id,CategoryModel category)
+        public (bool Success, string Error, CategoryModel? Category) Update(Guid Id,CategoryModel category)
         {
             var existingCategory = _context.Categories.Find(category.Id);
-            if (existingCategory == null) return (false,"Kategori bulunamadı");
+            if (existingCategory == null) return (false,"Kategori bulunamadı",null);
             existingCategory.Name = category.Name.Trim();
             existingCategory.Movies = category.Movies;
-            existingCategory.Id = category.Id;
            
             _context.SaveChanges();
-            return (true,"Kategori başarıyla güncellendi");
+            return (true,"Kategori başarıyla güncellendi",existingCategory);
         }
         public bool Delete(Guid id)
         {

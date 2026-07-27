@@ -8,7 +8,7 @@ namespace UserManagement.Services
     List<MovieModel> GetByCategoryId(Guid id);
     MovieModel? GetById(Guid id);
     (bool Success, string Error, MovieModel? Movie) Create(MovieModel movie);
-    (bool Success, string Error) Update(Guid Id,MovieModel movie);
+    (bool Success, string Error, MovieModel? Movie) Update(Guid Id,MovieModel movie);
     bool Delete(Guid id);
     }
 }

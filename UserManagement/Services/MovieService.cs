@@ -21,22 +21,22 @@ namespace UserManagement.Services
             _context.Movies.Add(movie);
             _context.SaveChanges();
 
-            return (true,string.Empty, movie);
+            return (true,string.Empty,movie);
         }
 
         public List<MovieModel> GetAll() => _context.Movies.ToList();
         public List<MovieModel> GetByCategoryId(Guid categoryId) => _context.Movies.Where(m => m.CategoryId == categoryId).ToList();
         public MovieModel? GetById(Guid id) => _context.Movies.Find(id);
-        public (bool Success, string Error) Update(Guid Id, MovieModel movie)
+        public (bool Success, string Error, MovieModel? Movie) Update(Guid Id, MovieModel movie)
         {
             var existingMovie = _context.Movies.Find(movie.Id);
-            if (existingMovie is null) return (false,"Aranan film bulunamadı");
+            if (existingMovie is null) return (false,"Aranan film bulunamadı",null);
             existingMovie.Title = movie.Title.Trim();
             existingMovie.Description = movie.Description?.Trim();
             existingMovie.CategoryId = movie.CategoryId;
             existingMovie.UpdatedAt = DateTime.UtcNow;
             _context.SaveChanges();
-            return (true, "Film başarıyla güncellendi");
+            return (true, "Film başarıyla güncellendi",existingMovie);
         }
         public bool Delete(Guid id)
         {

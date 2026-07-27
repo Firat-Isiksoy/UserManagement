@@ -7,6 +7,6 @@
         public float AverageRating { get; set; }
         public int? ReleaseYear { get; set; }
         public string? Description { get; set; }
-
+        public Guid CategoryId { get; set; }
     }
 }

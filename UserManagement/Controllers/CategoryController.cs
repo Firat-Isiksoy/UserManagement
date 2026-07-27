@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Mvc;
 using UserManagement.DTOs;
 using UserManagement.Models;
 using UserManagement.Services;
@@ -49,19 +50,39 @@ namespace UserManagement.Controllers
             });
         }
         [HttpPut("{id}")]
-        public IActionResult Update(Guid id, CategoryModel updatedCategory)
+        public IActionResult Update(Guid id, CategoryDto request)
         {
-            var (success, error) = _categoryService.Update(id, updatedCategory);
-            return success ? Ok("Kategori başarıyla güncellendi") : NotFound(error);
+            var categoryModel = new CategoryModel
+            {
+                Id = id,
+                Name = request.Name
+            };
+            
+                var (success, error,updatedCategory) = _categoryService.Update(id,categoryModel);
+
+                if (!success)
+                {
+                    return BadRequest(error);
+                }
+                var response = new CategoryDto
+                {
+                    Name = updatedCategory.Name,
+                    Movies = updatedCategory.Movies
+                };
+                return Ok(new
+                {
+                    Message = "Kategori başarıyla güncellendi",
+                    Data = response
+                });
 
         }
-        [HttpDelete("{id}")]
-        public IActionResult Delete(Guid id, CategoryModel updatedCategory)
-        {
-            var deleted = _categoryService.Delete(id);
-            return deleted ? Ok("Kategori başarıyla silindi") : NotFound("Kategori bulunamadı.");
+            [HttpDelete("{id}")]
+            public IActionResult Delete(Guid id)
+            {
+                var deleted = _categoryService.Delete(id);
+                return deleted ? Ok("Kategori başarıyla silindi") : NotFound("Kategori bulunamadı.");
 
-        }
-
+            } 
     }
 }
+
