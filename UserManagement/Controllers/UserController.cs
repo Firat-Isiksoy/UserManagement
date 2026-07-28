@@ -31,7 +31,7 @@ public class UserController : ControllerBase
         {
             FirstName = request.FirstName.Trim().ToLower(),
             LastName = request.LastName.Trim().ToLower(),
-            Email = request.Email
+            Email = request.Email.Trim().ToLower()
         };
 
         var (success, error, createdUser) = _userService.Create(userModel);
@@ -61,7 +61,7 @@ public class UserController : ControllerBase
             Id = id,
             FirstName = request.FirstName.Trim().ToLower(),
             LastName = request.LastName.Trim().ToLower(),
-            Email = request.Email
+            Email = request.Email.Trim().ToLower()
         };
 
         var (success, error, updatedUser) = _userService.Update(id,userModel);

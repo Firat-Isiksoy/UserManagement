@@ -22,10 +22,10 @@ namespace UserManagement.Services
            user.LastName = user.LastName?.Trim();
            user.Email = user.Email?.Trim().ToLower();
 
-            _context.Users.Add(user);
-            _context.SaveChanges();
+           _context.Users.Add(user);
+           _context.SaveChanges();
 
-            return (true,string.Empty, user);
+           return (true,string.Empty, user);
         }
         public (bool Success, string Error, UserModel? User) Update(Guid id, UserModel updatedUser)
         {
