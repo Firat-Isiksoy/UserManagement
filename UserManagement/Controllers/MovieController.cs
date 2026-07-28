@@ -23,16 +23,41 @@ namespace UserManagement.Controllers
             var movie = _movieService.GetById(id);
             return movie is null ? NotFound("Film bulunamadı.") : Ok(movie);
         }
+        [HttpGet("category/{categoryId}")]
+        public IActionResult GetMoviesByCategory(Guid categoryId)
+        {      
+            var movies = _movieService.GetMoviesByCategory(categoryId);
+
+            if (!movies.Any())
+            {
+                return NotFound("Bu kategoriye ait herhangi bir film bulunamadı.");
+            }
+            var response = movies.Select(m => new MovieDto
+            {
+                Title = m.Title,
+                Duration = m.Duration,
+                AverageRating = m.AverageRating,
+                ReleaseYear = m.ReleaseYear,
+                Description = m.Description,
+                CategoryId = m.CategoryId
+            }).ToList();
+
+            return Ok(new
+            {
+                Message = "Kategoriye ait filmler başarıyla listelendi",
+                Data = response
+            });
+        }
         [HttpPost]
         public IActionResult Create(MovieDto request)
         {
             var movieModel = new MovieModel
             {
-                Title = request.Title,
+                Title = request.Title.Trim().ToLower(),
                 Duration = request.Duration,
                 AverageRating = request.AverageRating,
                 ReleaseYear = request.ReleaseYear,
-                Description = request.Description,
+                Description = request.Description.Trim().ToLower(),
                 CategoryId = request.CategoryId
             };
 
@@ -64,11 +89,11 @@ namespace UserManagement.Controllers
             var movieModel = new MovieModel
             {
                 Id = id,
-                Title = request.Title,
+                Title = request.Title.Trim().ToLower(),
                 Duration = request.Duration,
                 AverageRating = request.AverageRating,
                 ReleaseYear = request.ReleaseYear,
-                Description = request.Description,
+                Description = request.Description?.Trim().ToLower(),
                 CategoryId = request.CategoryId
             };
 

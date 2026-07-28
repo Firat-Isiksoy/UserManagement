@@ -11,6 +11,7 @@ public class MovieManagementTest
              .Options;
     private AppDbContext _context;
     MovieService _movieService;
+    private Guid _testCategoryId;
     [OneTimeSetUp]
     public void Setup()
     {
@@ -28,18 +29,24 @@ public class MovieManagementTest
     }
     public void SeedDatabase()
     {
+        _testCategoryId = Guid.NewGuid();
+        var category = new CategoryModel
+        {
+            Id = _testCategoryId,
+            Name = "aksiyon"
+        };
         var movies = new List<MovieModel>
         {
             new MovieModel {
                 Id = Guid.NewGuid(),
-                Title = "Star Wars",
-                Description = "DarthVader",
+                Title = "MadMax",
+                Description = "çölde takılmaca",
                 Duration = 148,
                 ReleaseYear = 2010,
                 AverageRating = 8.2f,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                CategoryId = Guid.NewGuid()
+                CategoryId = _testCategoryId
             },
               new MovieModel {
                 Id = Guid.NewGuid(),
@@ -50,29 +57,29 @@ public class MovieManagementTest
                 AverageRating = 8.8f,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                CategoryId = Guid.NewGuid()
+                CategoryId = _testCategoryId
             },
                 new MovieModel {
                 Id = Guid.NewGuid(),
-                Title = "Seven",
-                Description = "",
+                Title = "Undisputed",
+                Description = "yuri boyka",
                 Duration = 135,
                 ReleaseYear = 2000,
                 AverageRating = 9.0f,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                CategoryId = Guid.NewGuid()
+                CategoryId = _testCategoryId
             },
                   new MovieModel {
                 Id = Guid.NewGuid(),
-                Title = "Hobbit",
-                Description = "Gollum",
+                Title = "Gladiator",
+                Description = "Maximus Decimus Meridius",
                 Duration = 157,
                 ReleaseYear = 2014,
                 AverageRating = 8.6f,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                CategoryId = Guid.NewGuid()
+                CategoryId = _testCategoryId
             },
         };
         _context.Movies.AddRange(movies);
@@ -84,7 +91,7 @@ public class MovieManagementTest
        
         var movies = _movieService.GetAll();
         Assert.AreEqual(4, movies.Count());
-        Assert.AreEqual("Star Wars", movies.First().Title);
+        Assert.AreEqual("MadMax", movies.First().Title);
     }
     [Test, Order(2)]
     public void GetById_ShouldReturnMovie_Test()
@@ -100,19 +107,19 @@ public class MovieManagementTest
         var createdMovie = new MovieModel
         {
             Id = Guid.NewGuid(),
-            Title = "GhostRider",
-            Description = "",
+            Title = "TheDarkKnight",
+            Description = "Heath Ledger'a Saygı",
             Duration = 133,
             ReleaseYear = 2011,
             AverageRating = 8.4f,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
-            CategoryId = Guid.NewGuid()
+            CategoryId = _testCategoryId
         };
         _movieService.Create(createdMovie);
         var dbMovie = _context.Movies.Find(createdMovie.Id);
         Assert.IsNotNull(dbMovie);
-        Assert.AreEqual("GhostRider", dbMovie.Title);
+        Assert.AreEqual("TheDarkKnight", dbMovie.Title);
     }
     [Test, Order(4)]
     public void Update_ShouldModifyMovie_Test()
@@ -135,10 +142,10 @@ public class MovieManagementTest
         Assert.IsNull(dbMovie);
     }
     [Test, Order(6)]
-    public void GetByCategoryId_ShouldReturnMoviesByCategory_Test()
+    public void GetMoviesByCategory_ShouldReturnMoviesByCategory_Test()
     {
         var categoryId = _context.Movies.First().CategoryId;
-        var movies = _movieService.GetByCategoryId(categoryId);
+        var movies = _movieService.GetMoviesByCategory(categoryId);
         Assert.IsNotNull(movies);
         Assert.IsTrue(movies.All(m => m.CategoryId == categoryId));
     }

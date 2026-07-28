@@ -36,25 +36,21 @@ public class CategoryManagementTest
     {
         Id = Guid.NewGuid(),
         Name = "Aksiyon",
-        Movies = new List<MovieModel>() 
     },
     new CategoryModel
     {
         Id = Guid.NewGuid(),
         Name = "Komedi",
-        Movies = new List<MovieModel>()
     },
     new CategoryModel
     {
         Id = Guid.NewGuid(),
         Name = "Bilim Kurgu",
-        Movies = new List<MovieModel>()
     },
     new CategoryModel
     {
         Id = Guid.NewGuid(),
         Name = "Dram",
-        Movies = new List<MovieModel>()
     }
 };
         _context.Categories.AddRange(categories);
@@ -84,7 +80,6 @@ public class CategoryManagementTest
         {
             Id = Guid.NewGuid(),
             Name = "Macera",
-            Movies = new List<MovieModel>()
         };
         var result = _categoryService.Create(newCategory);
 

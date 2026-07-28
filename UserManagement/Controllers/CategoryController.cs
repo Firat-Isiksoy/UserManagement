@@ -29,7 +29,7 @@ namespace UserManagement.Controllers
         {
             var categoryModel = new CategoryModel
             {
-                Name = request.Name
+                Name = request.Name.Trim().ToLower()
             };
 
             var (success, error, createdCategory) = _categoryService.Create(categoryModel);
@@ -41,7 +41,6 @@ namespace UserManagement.Controllers
             var response = new CategoryDto
             {
                 Name = createdCategory.Name,
-                Movies = createdCategory.Movies
             };
             return Ok(new
             {
@@ -55,7 +54,7 @@ namespace UserManagement.Controllers
             var categoryModel = new CategoryModel
             {
                 Id = id,
-                Name = request.Name
+                Name = request.Name.Trim().ToLower()
             };
             
                 var (success, error,updatedCategory) = _categoryService.Update(id,categoryModel);
@@ -67,7 +66,6 @@ namespace UserManagement.Controllers
                 var response = new CategoryDto
                 {
                     Name = updatedCategory.Name,
-                    Movies = updatedCategory.Movies
                 };
                 return Ok(new
                 {

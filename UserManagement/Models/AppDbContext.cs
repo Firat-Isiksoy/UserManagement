@@ -16,9 +16,9 @@ namespace UserManagement.Models
                 .HasIndex(u => u.Email)
                 .IsUnique();
             modelBuilder.Entity<MovieModel>()
-                 .HasOne(m => m.Category)     
-                 .WithMany(c => c.Movies)     
-                 .HasForeignKey(m => m.CategoryId); 
+     .HasOne<CategoryModel>() 
+     .WithMany()              
+     .HasForeignKey(m => m.CategoryId); 
         }
     }
 }

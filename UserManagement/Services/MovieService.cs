@@ -25,7 +25,10 @@ namespace UserManagement.Services
         }
 
         public List<MovieModel> GetAll() => _context.Movies.ToList();
-        public List<MovieModel> GetByCategoryId(Guid categoryId) => _context.Movies.Where(m => m.CategoryId == categoryId).ToList();
+        public List<MovieModel> GetMoviesByCategory(Guid categoryId)
+        {
+            return _context.Movies.Where(m => m.CategoryId == categoryId).ToList();
+        }
         public MovieModel? GetById(Guid id) => _context.Movies.Find(id);
         public (bool Success, string Error, MovieModel? Movie) Update(Guid Id, MovieModel movie)
         {
