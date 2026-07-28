@@ -31,7 +31,7 @@ public class CategoryManagementTest
     private void SeedDatabase()
     {
         var categories = new List<CategoryModel>
-{
+    {
     new CategoryModel
     {
         Id = Guid.NewGuid(),

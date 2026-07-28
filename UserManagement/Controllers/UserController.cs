@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Mvc;
+using UserManagement.DTOs;
 using UserManagement.Models;
 using UserManagement.Services;
-using UserManagement.DTOs;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -53,10 +54,32 @@ public class UserController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public IActionResult Update(Guid id, UserModel updatedUser)
+    public IActionResult Update(Guid id, UserDto request)
     {
-        var (success, error) = _userService.Update(id, updatedUser);
-        return success ? Ok("Kullanıcı başarıyla güncellendi") : NotFound(error);
+        var userModel = new UserModel
+        {
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Email = request.Email
+        };
+
+        var (success, error, updatedUser) = _userService.Create(userModel);
+
+        if (!success)
+        {
+            return BadRequest(error);
+        }
+        var response = new UserDto
+        {
+            FirstName = updatedUser.FirstName,
+            LastName = updatedUser.LastName,
+            Email = updatedUser.Email
+        };
+        return Ok(new
+        {
+            Message = "Kullanıcı başarıyla güncellendi",
+            Data = response
+        });
     }
 
     [HttpDelete("{id}")]

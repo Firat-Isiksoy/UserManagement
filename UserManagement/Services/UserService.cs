@@ -27,20 +27,20 @@ namespace UserManagement.Services
 
             return (true,string.Empty, user);
         }
-        public (bool Success, string Error) Update(Guid id, UserModel updatedUser)
+        public (bool Success, string Error, UserModel? User) Update(Guid id, UserModel updatedUser)
         {
             var user = _context.Users.Find(id);
             if (_context.Users.Any(u => u.Email == updatedUser.Email && u.Id != id))
-                return (false, "Bu e-posta adresi zaten var.");
+                return (false, "Bu e-posta adresi zaten var.",null);
             if (user is null)
-                return (false, "Kullanıcı bulunamadı.");
+                return (false, "Kullanıcı bulunamadı.",null);
 
             user.FirstName = updatedUser.FirstName;
             user.LastName = updatedUser.LastName;
             user.Email = updatedUser.Email;
             user.UpdatedAt = DateTime.UtcNow;
             _context.SaveChanges();
-            return (true, string.Empty);
+            return (true, string.Empty,user);
         }
 
         public bool Delete(Guid id)
