@@ -1,5 +1,6 @@
 ﻿using Azure.Core;
 using UserManagement.Models;
+using UserManagement.Mappers;
 
 namespace UserManagement.Services
 {
@@ -12,9 +13,8 @@ namespace UserManagement.Services
             _context = context;
         }
 
-        public List<UserModel> GetAll() => _context.Users.ToList();
-
-        public UserModel? GetById(Guid id) => _context.Users.Find(id);
+        public List<UserDto> GetAll() => _context.Users.Select(u => u.ToDto()).ToList();
+        public UserDto? GetById(Guid id) => _context.Users.Find(id)?.ToDto();
 
         public ResponseModel<UserDto> Create(UserDto request)
         {
@@ -27,27 +27,17 @@ namespace UserManagement.Services
                     Data = null
                 };
             }
-            var userModel = new UserModel()
-            {
-                FirstName = request.FirstName.Trim().ToLower(),
-                LastName = request.LastName.Trim().ToLower(),
-                Email = request.Email?.Trim().ToLower(),
-            };
+            var userModel = request.ToModel();
+            userModel.Id = Guid.NewGuid(); 
 
             _context.Users.Add(userModel);
             _context.SaveChanges();
-            var userDto = new UserDto()
-            {
-                FirstName = userModel.FirstName,
-                LastName = userModel.LastName,
-                Email = userModel.Email
-            };
-
+         
             return new ResponseModel<UserDto>
             {
                 Success = true,
                 Error = null,
-                Data = userDto
+                Data = userModel.ToDto()
             };
         }
         public ResponseModel<UserDto> Update(Guid id, UserDto request)
@@ -62,7 +52,7 @@ namespace UserManagement.Services
                     Data = null
                 };
             }
-            if (_context.Users.Any(u => u.Email == existingUser.Email && u.Id != id))
+            if (_context.Users.Any(u => u.Email == request.Email && u.Id != id))
             {
                 return new ResponseModel<UserDto>
                 {
@@ -71,25 +61,14 @@ namespace UserManagement.Services
                     Data = null
                 };
             }
-           var updatedUser = new UserModel
-            {
-                FirstName = request.FirstName.Trim().ToLower(),
-                LastName = request.LastName.Trim().ToLower(),
-                Email = request.Email?.Trim().ToLower(),
-            };
-            _context.Users.Update(updatedUser);
+            request.UpdateModel(existingUser);
             _context.SaveChanges();
-            var responseDto = new UserDto
-            {
-                FirstName = updatedUser.FirstName,
-                LastName = updatedUser.LastName,
-                Email = updatedUser.Email
-            };
+           
             return new ResponseModel<UserDto>
             {
                 Success = true,
                 Error = null,
-                Data = responseDto
+                Data = existingUser.ToDto()
             };
         }
         public bool Delete(Guid id)

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using UserManagement.DTOs;
+using UserManagement.Mappers;
 using UserManagement.Models;
 
 namespace UserManagement.Services
@@ -12,59 +13,45 @@ namespace UserManagement.Services
         {
             _context = context;
         }
-        public List<CategoryModel> GetAll()
+        public List<CategoryDto> GetAll()
         {
-            return _context.Categories.ToList();
+            return _context.Categories.Select(c => c.ToDto()).ToList();
         }
-        public CategoryModel? GetById(Guid id)
+        public CategoryDto GetById(Guid id)
         {
-            return _context.Categories.FirstOrDefault(c => c.Id == id);
+            return _context.Categories.Find(id)?.ToDto();
         }
         public ResponseModel<CategoryDto> Create(CategoryDto request)
         {
-            var category = new CategoryModel
-            {
-                Id = Guid.NewGuid(),
-                Name = request.Name.Trim()
-            };
+            var category = request.ToModel();
+            category.Id = Guid.NewGuid();
 
            _context.Categories.Add(category);
-           _context.SaveChanges();
-           var responseDto = new CategoryDto
-           {
-                Name = category.Name
-           };
+           _context.SaveChanges(); 
+         
             return new ResponseModel<CategoryDto>
             {
                 Success = true,
                 Error = null,
-                Data = responseDto
+                Data = category.ToDto()
             };
         }
         public ResponseModel<CategoryDto> Update(Guid Id, CategoryDto request)
         {
-           var existingCategory = _context.Categories.Find(Id);
-            if (existingCategory == null)
-            {
-                return new ResponseModel<CategoryDto>
-                {
-                    Success = false,
-                    Error = "Aranan kategori bulunamadı",
-                    Data = null
-                };                
-            }
-            existingCategory.Name = request.Name.Trim();
+            var existingCategory = _context.Categories.Find(Id);
 
-            var responseDto = new CategoryDto
+            if (existingCategory is null)
             {
-                Name = existingCategory.Name
-            };
+                return new ResponseModel<CategoryDto> { Success = false, Error = "Kategori bulunamadı", Data = null };
+            }
+            request.UpdateModel(existingCategory);
             _context.SaveChanges();
+
             return new ResponseModel<CategoryDto>
             {
                 Success = true,
                 Error = null,
-                Data = responseDto
+                Data = existingCategory.ToDto()
             };
         }
         public bool Delete(Guid id)

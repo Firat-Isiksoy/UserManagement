@@ -26,24 +26,13 @@ namespace UserManagement.Controllers
         }
         [HttpGet("category/{categoryId}")]
         public IActionResult GetMoviesByCategory(Guid categoryId)
-        {      
+        {
             var movies = _movieService.GetMoviesByCategory(categoryId);
-
             if (!movies.Any())
             {
                 return NotFound("Bu kategoriye ait herhangi bir film bulunamadı.");
-            }
-            var response = movies.Select(m => new MovieDto
-            {
-                Title = m.Title,
-                Duration = m.Duration,
-                AverageRating = m.AverageRating,
-                ReleaseYear = m.ReleaseYear,
-                Description = m.Description,
-                CategoryId = m.CategoryId
-            }).ToList();
-
-            return Ok(new { Message = "Kategoriye ait filmler başarıyla listelendi", Data = response });
+            }          
+            return Ok(movies);          
         }
         [HttpPost]
         public IActionResult Create(MovieDto request)

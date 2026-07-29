@@ -76,7 +76,7 @@ namespace UserManagement_Tests
 
             var dbUser = _context.Users.FirstOrDefault(u => u.Email == "user105@example.com");
             Assert.That(dbUser, Is.Not.Null);
-            Assert.That(dbUser.FirstName, Is.EqualTo("jane"));
+            Assert.That(dbUser.FirstName, Is.EqualTo("Jane"));
         }
         [Test, Order(4)]
         public void UpdateUser_ShouldModifyUser_Test()
@@ -95,7 +95,7 @@ namespace UserManagement_Tests
 
             var dbUser = _context.Users.FirstOrDefault(u => u.Email == "user106@example.com");
             Assert.That(dbUser, Is.Not.Null);
-            Assert.That(dbUser.FirstName, Is.EqualTo("jhin"));
+            Assert.That(dbUser.FirstName, Is.EqualTo("Jhin"));
         }
         [Test, Order(5)]
         public void DeleteUser_ShouldRemoveUser_Test()

@@ -1,4 +1,5 @@
 ﻿using UserManagement.DTOs;
+using UserManagement.Mappers;
 using UserManagement.Models;
 
 namespace UserManagement.Services
@@ -12,46 +13,31 @@ namespace UserManagement.Services
         {
             _context = context;
         }
-
         public ResponseModel<MovieDto> Create(MovieDto request)
         {
-           var movie = new MovieModel
-           {
-                Id = Guid.NewGuid(),
-                Title = request.Title.Trim(),
-                Duration = request.Duration,
-                AverageRating = request.AverageRating,
-                ReleaseYear = request.ReleaseYear,
-                Description = request.Description?.Trim(),
-                CategoryId = request.CategoryId,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-           };
+            var newMovie = request.ToModel();
+            newMovie.Id = Guid.NewGuid();
+            newMovie.CreatedAt = DateTime.UtcNow;
 
-            _context.Movies.Add(movie);
+            _context.Movies.Add(newMovie);
             _context.SaveChanges();
-            var responseDto = new MovieDto
-            {
-                Title = movie.Title,
-                Duration = movie.Duration,
-                AverageRating = movie.AverageRating,
-                ReleaseYear = movie.ReleaseYear,
-                Description = movie.Description,
-                CategoryId = movie.CategoryId
-            };
+
             return new ResponseModel<MovieDto>
             {
                 Success = true,
                 Error = null,
-                Data = responseDto
+                Data = newMovie.ToDto()
             };
         }
-        public List<MovieModel> GetAll() => _context.Movies.ToList();
-        public List<MovieModel> GetMoviesByCategory(Guid categoryId)
+        public List<MovieDto> GetAll() => _context.Movies.Select(m => m.ToDto()).ToList();
+        public List<MovieDto> GetMoviesByCategory(Guid categoryId)
         {
-            return _context.Movies.Where(m => m.CategoryId == categoryId).ToList();
+            return _context.Movies
+                   .Where(m => m.CategoryId == categoryId)
+                   .Select(m => m.ToDto())
+                   .ToList();
         }
-        public MovieModel? GetById(Guid id) => _context.Movies.Find(id);
+        public MovieDto? GetById(Guid id) => _context.Movies.Find(id)?.ToDto();
         public ResponseModel<MovieDto> Update(Guid Id, MovieDto movie)
         {
             var existingMovie = _context.Movies.Find(Id);
@@ -64,32 +50,17 @@ namespace UserManagement.Services
                     Data = null
                 };              
             };
-
-            existingMovie.Title = movie.Title.Trim();
-            existingMovie.Duration = movie.Duration;
-            existingMovie.AverageRating = movie.AverageRating;
-            existingMovie.ReleaseYear = movie.ReleaseYear;
-            existingMovie.Description = movie.Description?.Trim();
-            existingMovie.CategoryId = movie.CategoryId;
+            movie.UpdateModel(existingMovie);
             existingMovie.UpdatedAt = DateTime.UtcNow;
 
             _context.SaveChanges();
             
-            var updatedMovieDto = new MovieDto
-            {
-                Title = existingMovie.Title,
-                Duration = existingMovie.Duration,
-                AverageRating = existingMovie.AverageRating,
-                ReleaseYear = existingMovie.ReleaseYear,
-                Description = existingMovie.Description,
-                CategoryId = existingMovie.CategoryId
-            };
            return new ResponseModel<MovieDto>
-            {
+           {
                 Success = true,
                 Error = null,
-                Data = updatedMovieDto
-            };
+                Data = existingMovie.ToDto()
+           };
         }
         public bool Delete(Guid id)
         {

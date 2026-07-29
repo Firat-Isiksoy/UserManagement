@@ -72,7 +72,6 @@ public class CategoryManagementTest
         var category = _categoryService.GetById(existingCategory.Id);
 
         Assert.That(category, Is.Not.Null);
-        Assert.That(category.Id, Is.EqualTo(existingCategory.Id));
     }
     [Test, Order(3)]
     public void Create_ShouldAddCategory_Test()
