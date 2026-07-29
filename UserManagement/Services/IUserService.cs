@@ -1,13 +1,13 @@
-﻿using UserManagement.Models;
-
+﻿using UserManagement.DTOs;
+using UserManagement.Models;
 namespace UserManagement.Services
 {
     public interface IUserService
     {
         List<UserModel> GetAll();
         UserModel? GetById(Guid id);
-        (bool Success, string Error, UserModel? User) Create(UserModel user);
-        (bool Success, string Error, UserModel? User) Update(Guid id, UserModel updatedUser);
+        ResponseModel<UserDto> Create(UserDto request);
+        ResponseModel<UserDto> Update(Guid id, UserDto request);
         bool Delete(Guid id);
     }
 }

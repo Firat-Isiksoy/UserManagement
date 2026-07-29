@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using UserManagement.DTOs;
 using UserManagement.Models;
 using UserManagement.Services;
 
@@ -76,16 +77,14 @@ public class CategoryManagementTest
     [Test, Order(3)]
     public void Create_ShouldAddCategory_Test()
     {
-        var newCategory = new CategoryModel
+        var newCategory = new CategoryDto
         {
-            Id = Guid.NewGuid(),
             Name = "Macera",
         };
         var result = _categoryService.Create(newCategory);
 
         Assert.That(result.Success, Is.True);
-        Assert.That(result.Error, Is.Empty);
-
+        Assert.That(result.Error, Is.Null); 
         Assert.That(_context.Categories.Count(), Is.EqualTo(5));
 
         var dbCategory = _context.Categories.FirstOrDefault(c => c.Name == "Macera");
@@ -93,17 +92,15 @@ public class CategoryManagementTest
     }
     [Test,Order(4)] 
     public void UpdateCategory_ShouldModifyCategory_Test()
-    {
-     
+    {     
         var existingCategory = _context.Categories.First();
-
-        existingCategory.Name = "Animasyon";
-
-        var result = _categoryService.Update(existingCategory.Id, existingCategory);
-
+        var updatedCategory = new CategoryDto
+        {
+            Name = "Animasyon"
+        };
+        var result = _categoryService.Update(existingCategory.Id, updatedCategory);
         Assert.That(result.Success, Is.True);
-        Assert.That(result.Error, Is.EqualTo("Kategori başarıyla güncellendi"));
-
+        Assert.That(result.Error, Is.Null);     
         
         var dbCategory = _context.Categories.FirstOrDefault(u => u.Id == existingCategory.Id);
         Assert.That(dbCategory, Is.Not.Null);

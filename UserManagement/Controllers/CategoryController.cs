@@ -27,60 +27,30 @@ namespace UserManagement.Controllers
         [HttpPost]
         public IActionResult Create(CategoryDto request)
         {
-            var categoryModel = new CategoryModel
-            {
-                Name = request.Name.Trim().ToLower()
-            };
+            var response = _categoryService.Create(request);
 
-            var (success, error, createdCategory) = _categoryService.Create(categoryModel);
-
-            if (!success)
+            if (!response.Success)
             {
-                return BadRequest(error);
+                return BadRequest(response.Error);
             }
-            var response = new CategoryDto
-            {
-                Name = createdCategory.Name,
-            };
-            return Ok(new
-            {
-                Message = "Kategori başarıyla eklendi",
-                Data = response
-            });
-        }
+            return Ok(new { Message = "Kategori başarıyla eklendi", response.Data });
+        }     
         [HttpPut("{id}")]
         public IActionResult Update(Guid id, CategoryDto request)
-        {
-            var categoryModel = new CategoryModel
-            {
-                Id = id,
-                Name = request.Name.Trim().ToLower()
-            };
-            
-                var (success, error,updatedCategory) = _categoryService.Update(id,categoryModel);
-
-                if (!success)
-                {
-                    return BadRequest(error);
-                }
-                var response = new CategoryDto
-                {
-                    Name = updatedCategory.Name,
-                };
-                return Ok(new
-                {
-                    Message = "Kategori başarıyla güncellendi",
-                    Data = response
-                });
-
+        {            
+            var response = _categoryService.Update(id,request);
+               if (!response.Success)
+               {
+                   return BadRequest(response.Error);
+               }
+               return Ok(new { Message = "Kategori başarıyla güncellendi", response.Data });
         }
-            [HttpDelete("{id}")]
-            public IActionResult Delete(Guid id)
-            {
-                var deleted = _categoryService.Delete(id);
-                return deleted ? Ok("Kategori başarıyla silindi") : NotFound("Kategori bulunamadı.");
-
-            } 
+        [HttpDelete("{id}")]
+        public IActionResult Delete(Guid id)
+        {
+             var deleted = _categoryService.Delete(id);
+             return deleted ? Ok("Kategori başarıyla silindi") : NotFound("Kategori bulunamadı.");
+        } 
     }
 }
 

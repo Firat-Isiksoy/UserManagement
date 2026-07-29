@@ -1,4 +1,5 @@
-﻿using UserManagement.Models;
+﻿using UserManagement.DTOs;
+using UserManagement.Models;
 
 namespace UserManagement.Services
 {
@@ -7,8 +8,8 @@ namespace UserManagement.Services
     List<MovieModel> GetAll();
     List<MovieModel> GetMoviesByCategory(Guid categoryId);
     MovieModel? GetById(Guid id);
-    (bool Success, string Error, MovieModel? Movie) Create(MovieModel movie);
-    (bool Success, string Error, MovieModel? Movie) Update(Guid Id,MovieModel movie);
+    ResponseModel<MovieDto> Create(MovieDto request);
+    ResponseModel<MovieDto> Update(Guid Id,MovieDto movie);
     bool Delete(Guid id);
     }
 }

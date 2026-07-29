@@ -1,4 +1,5 @@
-﻿using UserManagement.Models;
+﻿using UserManagement.DTOs;
+using UserManagement.Models;
 
 namespace UserManagement.Services
 {
@@ -12,34 +13,83 @@ namespace UserManagement.Services
             _context = context;
         }
 
-        public (bool Success, string Error, MovieModel? Movie) Create(MovieModel movie)
+        public ResponseModel<MovieDto> Create(MovieDto request)
         {
-            movie.Id = Guid.NewGuid();
-            movie.Title = movie.Title.Trim();
-            movie.CreatedAt = DateTime.UtcNow;
+           var movie = new MovieModel
+           {
+                Id = Guid.NewGuid(),
+                Title = request.Title.Trim(),
+                Duration = request.Duration,
+                AverageRating = request.AverageRating,
+                ReleaseYear = request.ReleaseYear,
+                Description = request.Description?.Trim(),
+                CategoryId = request.CategoryId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+           };
 
             _context.Movies.Add(movie);
             _context.SaveChanges();
-
-            return (true,string.Empty,movie);
+            var responseDto = new MovieDto
+            {
+                Title = movie.Title,
+                Duration = movie.Duration,
+                AverageRating = movie.AverageRating,
+                ReleaseYear = movie.ReleaseYear,
+                Description = movie.Description,
+                CategoryId = movie.CategoryId
+            };
+            return new ResponseModel<MovieDto>
+            {
+                Success = true,
+                Error = null,
+                Data = responseDto
+            };
         }
-
         public List<MovieModel> GetAll() => _context.Movies.ToList();
         public List<MovieModel> GetMoviesByCategory(Guid categoryId)
         {
             return _context.Movies.Where(m => m.CategoryId == categoryId).ToList();
         }
         public MovieModel? GetById(Guid id) => _context.Movies.Find(id);
-        public (bool Success, string Error, MovieModel? Movie) Update(Guid Id, MovieModel movie)
+        public ResponseModel<MovieDto> Update(Guid Id, MovieDto movie)
         {
-            var existingMovie = _context.Movies.Find(movie.Id);
-            if (existingMovie is null) return (false,"Aranan film bulunamadı",null);
+            var existingMovie = _context.Movies.Find(Id);
+            if (existingMovie is null)                
+            {
+                return new ResponseModel<MovieDto>
+                {
+                    Success = false,
+                    Error = "Aranan film bulunamadı",
+                    Data = null
+                };              
+            };
+
             existingMovie.Title = movie.Title.Trim();
+            existingMovie.Duration = movie.Duration;
+            existingMovie.AverageRating = movie.AverageRating;
+            existingMovie.ReleaseYear = movie.ReleaseYear;
             existingMovie.Description = movie.Description?.Trim();
             existingMovie.CategoryId = movie.CategoryId;
             existingMovie.UpdatedAt = DateTime.UtcNow;
+
             _context.SaveChanges();
-            return (true, "Film başarıyla güncellendi",existingMovie);
+            
+            var updatedMovieDto = new MovieDto
+            {
+                Title = existingMovie.Title,
+                Duration = existingMovie.Duration,
+                AverageRating = existingMovie.AverageRating,
+                ReleaseYear = existingMovie.ReleaseYear,
+                Description = existingMovie.Description,
+                CategoryId = existingMovie.CategoryId
+            };
+           return new ResponseModel<MovieDto>
+            {
+                Success = true,
+                Error = null,
+                Data = updatedMovieDto
+            };
         }
         public bool Delete(Guid id)
         {

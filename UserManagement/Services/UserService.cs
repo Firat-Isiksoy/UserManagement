@@ -1,4 +1,5 @@
-﻿using UserManagement.Models;
+﻿using Azure.Core;
+using UserManagement.Models;
 
 namespace UserManagement.Services
 {
@@ -15,34 +16,82 @@ namespace UserManagement.Services
 
         public UserModel? GetById(Guid id) => _context.Users.Find(id);
 
-        public (bool Success, string Error, UserModel? User) Create(UserModel user)
+        public ResponseModel<UserDto> Create(UserDto request)
         {
-           user.Id = Guid.NewGuid();
-           user.FirstName = user.FirstName?.Trim();
-           user.LastName = user.LastName?.Trim();
-           user.Email = user.Email?.Trim().ToLower();
+            if (_context.Users.Any(u => u.Email == request.Email))
+            {
+                return new ResponseModel<UserDto>
+                {
+                    Success = false,
+                    Error = "Bu e-posta adresi zaten kayıtlı",
+                    Data = null
+                };
+            }
+            var userModel = new UserModel()
+            {
+                FirstName = request.FirstName.Trim().ToLower(),
+                LastName = request.LastName.Trim().ToLower(),
+                Email = request.Email?.Trim().ToLower(),
+            };
 
-           _context.Users.Add(user);
-           _context.SaveChanges();
-
-           return (true,string.Empty, user);
-        }
-        public (bool Success, string Error, UserModel? User) Update(Guid id, UserModel updatedUser)
-        {
-            var user = _context.Users.Find(id);
-            if (_context.Users.Any(u => u.Email == updatedUser.Email && u.Id != id))
-                return (false, "Bu e-posta adresi zaten var.",null);
-            if (user is null)
-                return (false, "Kullanıcı bulunamadı.",null);
-
-            user.FirstName = updatedUser.FirstName;
-            user.LastName = updatedUser.LastName;
-            user.Email = updatedUser.Email;
-            user.UpdatedAt = DateTime.UtcNow;
+            _context.Users.Add(userModel);
             _context.SaveChanges();
-            return (true, string.Empty,user);
-        }
+            var userDto = new UserDto()
+            {
+                FirstName = userModel.FirstName,
+                LastName = userModel.LastName,
+                Email = userModel.Email
+            };
 
+            return new ResponseModel<UserDto>
+            {
+                Success = true,
+                Error = null,
+                Data = userDto
+            };
+        }
+        public ResponseModel<UserDto> Update(Guid id, UserDto request)
+        {
+            var existingUser = _context.Users.Find(id);
+            if (existingUser == null)
+            {
+                return new ResponseModel<UserDto>
+                {
+                    Success = false,
+                    Error = "Kullanıcı bulunamadı",
+                    Data = null
+                };
+            }
+            if (_context.Users.Any(u => u.Email == existingUser.Email && u.Id != id))
+            {
+                return new ResponseModel<UserDto>
+                {
+                    Success = false,
+                    Error = "Bu e-posta başka birine ait",
+                    Data = null
+                };
+            }
+           var updatedUser = new UserModel
+            {
+                FirstName = request.FirstName.Trim().ToLower(),
+                LastName = request.LastName.Trim().ToLower(),
+                Email = request.Email?.Trim().ToLower(),
+            };
+            _context.Users.Update(updatedUser);
+            _context.SaveChanges();
+            var responseDto = new UserDto
+            {
+                FirstName = updatedUser.FirstName,
+                LastName = updatedUser.LastName,
+                Email = updatedUser.Email
+            };
+            return new ResponseModel<UserDto>
+            {
+                Success = true,
+                Error = null,
+                Data = responseDto
+            };
+        }
         public bool Delete(Guid id)
         {
             var user = _context.Users.Find(id);

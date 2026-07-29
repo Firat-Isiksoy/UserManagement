@@ -1,4 +1,5 @@
 ﻿using UserManagement.Models;
+using UserManagement.DTOs;
 
 namespace UserManagement.Services
 {
@@ -6,8 +7,8 @@ namespace UserManagement.Services
     {
     List<CategoryModel> GetAll();
     CategoryModel? GetById(Guid id);
-    (bool Success, string Error, CategoryModel? Category) Create(CategoryModel category);
-    (bool Success, string Error, CategoryModel? Category) Update(Guid Id, CategoryModel category);
+    ResponseModel<CategoryDto> Create(CategoryDto category);
+    ResponseModel<CategoryDto> Update(Guid Id, CategoryDto category);
     bool Delete(Guid id);
     }
 }

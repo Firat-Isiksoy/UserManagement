@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using UserManagement.DTOs;
 using UserManagement.Models;
 using UserManagement.Services;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace UserManagement.Controllers
 {
@@ -42,82 +43,29 @@ namespace UserManagement.Controllers
                 CategoryId = m.CategoryId
             }).ToList();
 
-            return Ok(new
-            {
-                Message = "Kategoriye ait filmler başarıyla listelendi",
-                Data = response
-            });
+            return Ok(new { Message = "Kategoriye ait filmler başarıyla listelendi", Data = response });
         }
         [HttpPost]
         public IActionResult Create(MovieDto request)
-        {
-            var movieModel = new MovieModel
-            {
-                Title = request.Title.Trim().ToLower(),
-                Duration = request.Duration,
-                AverageRating = request.AverageRating,
-                ReleaseYear = request.ReleaseYear,
-                Description = request.Description.Trim().ToLower(),
-                CategoryId = request.CategoryId
-            };
+        {          
+            var response = _movieService.Create(request);
 
-            var (success, error, createdMovie) = _movieService.Create(movieModel);
-
-            if (!success)
+            if (!response.Success)
             {
-                return BadRequest(error);
+                return BadRequest(response.Error);
             }
-            var response = new MovieDto
-            {
-                Title = createdMovie.Title,
-                Duration = createdMovie.Duration,
-                AverageRating = createdMovie.AverageRating,
-                ReleaseYear = createdMovie.ReleaseYear,
-                Description = createdMovie.Description,
-                CategoryId =createdMovie.CategoryId,
-            };
-            return Ok(new
-            {
-                Message = "Film başarıyla eklendi",
-                Data = response
-            });
+            return Ok(new {Message = "Film başarıyla eklendi", response.Data});        
         }
         [HttpPut("{id}")]
         public IActionResult Update(Guid id, MovieDto request)
         {
+            var response = _movieService.Update(id,request);
 
-            var movieModel = new MovieModel
+            if (!response.Success)
             {
-                Id = id,
-                Title = request.Title.Trim().ToLower(),
-                Duration = request.Duration,
-                AverageRating = request.AverageRating,
-                ReleaseYear = request.ReleaseYear,
-                Description = request.Description?.Trim().ToLower(),
-                CategoryId = request.CategoryId
-            };
-
-            var (success, error,updatedMovie) = _movieService.Update(id,movieModel);
-
-            if (!success)
-            {
-                return BadRequest(error);
+                return BadRequest(response.Error);
             }
-            var response = new MovieDto
-            {
-                Title = updatedMovie.Title,
-                Duration = updatedMovie.Duration,
-                AverageRating = updatedMovie.AverageRating,
-                ReleaseYear = updatedMovie.ReleaseYear,
-                Description = updatedMovie.Description,
-                CategoryId =updatedMovie.CategoryId,
-            };
-            return Ok(new
-            {
-                Message = "Film başarıyla güncellendi",
-                Data = response
-            });
-
+            return Ok(new{ Message = "Film başarıyla güncellendi", response.Data });
         }
         [HttpDelete("{id}")]
         public IActionResult Delete(Guid id)

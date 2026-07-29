@@ -27,62 +27,21 @@ public class UserController : ControllerBase
     [HttpPost]
     public IActionResult Create(UserDto request)
     {
-        var userModel = new UserModel
-        {
-            FirstName = request.FirstName.Trim().ToLower(),
-            LastName = request.LastName.Trim().ToLower(),
-            Email = request.Email.Trim().ToLower()
-        };
-
-        var (success, error, createdUser) = _userService.Create(userModel);
-
-        if (!success)
-        {
-            return BadRequest(error);
-        }
-        var response = new UserDto
-        {
-            FirstName = createdUser.FirstName,
-            LastName = createdUser.LastName,
-            Email = createdUser.Email
-        };
-        return Ok(new
-        {
-            Message = "Kullanıcı başarıyla eklendi",
-            Data = response
-        });
+        var  response = _userService.Create(request);
+        if (!response.Success) return BadRequest(response.Error);
+        return Ok(new { Message = "Kullanıcı başarıyla eklendi", response.Data });
     }
-
     [HttpPut("{id}")]
     public IActionResult Update(Guid id, UserDto request)
-    {
-        var userModel = new UserModel
+    {      
+        var response = _userService.Update(id,request);
+        if (!response.Success)
         {
-            Id = id,
-            FirstName = request.FirstName.Trim().ToLower(),
-            LastName = request.LastName.Trim().ToLower(),
-            Email = request.Email.Trim().ToLower()
-        };
-
-        var (success, error, updatedUser) = _userService.Update(id,userModel);
-
-        if (!success)
-        {
-            return BadRequest(error);
-        }
-        var response = new UserDto
-        {
-            FirstName = updatedUser.FirstName,
-            LastName = updatedUser.LastName,
-            Email = updatedUser.Email
-        };
+            return BadRequest(response.Error);
+        }    
         return Ok(new
-        {
-            Message = "Kullanıcı başarıyla güncellendi",
-            Data = response
-        });
+        { Message = "Kullanıcı başarıyla güncellendi", response.Data});
     }
-
     [HttpDelete("{id}")]
     public IActionResult Delete(Guid id)
     {

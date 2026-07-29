@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using UserManagement.DTOs;
 using UserManagement.Models;
 using UserManagement.Services;
 
@@ -104,34 +105,42 @@ public class MovieManagementTest
     [Test, Order(3)]
     public void Create_ShouldAddMovie_Test()
     {
-        var createdMovie = new MovieModel
+        var newMovieDto = new MovieDto
         {
-            Id = Guid.NewGuid(),
             Title = "TheDarkKnight",
             Description = "Heath Ledger'a Saygı",
             Duration = 133,
             ReleaseYear = 2011,
             AverageRating = 8.4f,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
             CategoryId = _testCategoryId
         };
-        _movieService.Create(createdMovie);
-        var dbMovie = _context.Movies.Find(createdMovie.Id);
-        Assert.IsNotNull(dbMovie);
-        Assert.AreEqual("TheDarkKnight", dbMovie.Title);
+        var result = _movieService.Create(newMovieDto);
+        Assert.That(result.Success, Is.True);
+        Assert.That(result.Error, Is.Null);
+        var dbMovie = _context.Movies.FirstOrDefault(m => m.Title == "TheDarkKnight");
+        Assert.That(dbMovie, Is.Not.Null);
+        Assert.That(dbMovie.Title, Is.EqualTo("TheDarkKnight"));
     }
     [Test, Order(4)]
     public void Update_ShouldModifyMovie_Test()
     {
         var existingMovie = _context.Movies.First();
-        existingMovie.Title = "Maskeli Beşler";
-        existingMovie.Description = "Irak";
-        _movieService.Update(existingMovie.Id,existingMovie);
+        var updatedDto = new MovieDto
+        {
+            Title = "Maskeli Beşler",
+            Description = "Irak",
+            Duration = existingMovie.Duration,
+            ReleaseYear = existingMovie.ReleaseYear,
+            AverageRating = existingMovie.AverageRating,
+            CategoryId = existingMovie.CategoryId
+        };
+        var result = _movieService.Update(existingMovie.Id, updatedDto);
+        Assert.That(result.Success, Is.True);
+        Assert.That(result.Error, Is.Null);
         var dbMovie = _context.Movies.Find(existingMovie.Id);
-        Assert.IsNotNull(dbMovie);
-        Assert.AreEqual("Maskeli Beşler", dbMovie.Title);
-        Assert.AreEqual("Irak", dbMovie.Description);
+        Assert.That(dbMovie, Is.Not.Null);
+        Assert.That(dbMovie.Title, Is.EqualTo("Maskeli Beşler"));
+        Assert.That(dbMovie.Description, Is.EqualTo("Irak"));
     }
     [Test, Order(5)]
     public void Delete_ShouldRemoveMovie_Test()
