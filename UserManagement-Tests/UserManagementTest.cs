@@ -45,7 +45,7 @@ namespace UserManagement_Tests
         [Test, Order(1)]
         public void GetAllUsers_ShouldReturnAllUsers_Test()
         {
-            var users = _userService.GetAll();
+            var users = _userService.GetAll().ToList();
             Assert.That(users.Count, Is.EqualTo(4));
             Assert.That(users[0].FirstName, Is.EqualTo("Johnny"));
         }
@@ -54,14 +54,14 @@ namespace UserManagement_Tests
         {
             var existingUser = _context.Users.First();
             var user = _userService.GetById(existingUser.Id);
-   
+
             Assert.That(user, Is.Not.Null);
-            Assert.That(user.Id, Is.EqualTo(existingUser.Id));
+            Assert.That(user.Email, Is.EqualTo(existingUser.Email));
         }
-        [Test,Order(3)]
+        [Test, Order(3)]
         public void CreateUser_ShouldAddUser_Test()
         {
-            var newUser = new UserModel
+            var newUser = new UserDto
             {
                 FirstName = "Jane",
                 LastName = "Doe",
@@ -70,7 +70,7 @@ namespace UserManagement_Tests
             var result = _userService.Create(newUser);
 
             Assert.That(result.Success, Is.True);
-            Assert.That(result.Error, Is.Empty);
+            Assert.That(result.Error, Is.Null);
 
             Assert.That(_context.Users.Count(), Is.EqualTo(5));
 
@@ -82,7 +82,7 @@ namespace UserManagement_Tests
         public void UpdateUser_ShouldModifyUser_Test()
         {
             var existingUser = _context.Users.First();
-            var updatedUser = new UserModel
+            var updatedUser = new UserDto
             {
                 FirstName = "Jhin",
                 LastName = "Kazama",
@@ -91,7 +91,7 @@ namespace UserManagement_Tests
             var result = _userService.Update(existingUser.Id, updatedUser);
 
             Assert.That(result.Success, Is.True);
-            Assert.That(result.Error, Is.Empty);
+            Assert.That(result.Error, Is.Null);
 
             var dbUser = _context.Users.FirstOrDefault(u => u.Email == "user106@example.com");
             Assert.That(dbUser, Is.Not.Null);

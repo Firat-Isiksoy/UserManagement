@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Mvc;
+using UserManagement.DTOs;
 using UserManagement.Models;
 using UserManagement.Services;
 
@@ -22,21 +24,24 @@ public class UserController : ControllerBase
         var user = _userService.GetById(id);
         return user is null ? NotFound("Kullanıcı bulunamadı.") : Ok(user);
     }
-
     [HttpPost]
-    public IActionResult Create(UserModel userModel)
+    public IActionResult Create(UserDto request)
     {
-        var (success, error) = _userService.Create(userModel);
-        return success ? Ok("Kullanıcı başarıyla eklendi") : BadRequest(error);
+        var  response = _userService.Create(request);
+        if (!response.Success) return BadRequest(response.Error);
+        return Ok(new { Message = "Kullanıcı başarıyla eklendi", response.Data });
     }
-
     [HttpPut("{id}")]
-    public IActionResult Update(Guid id, UserModel updatedUser)
-    {
-        var (success, error) = _userService.Update(id, updatedUser);
-        return success ? Ok("Kullanıcı başarıyla güncellendi") : NotFound(error);
+    public IActionResult Update(Guid id, UserDto request)
+    {      
+        var response = _userService.Update(id,request);
+        if (!response.Success)
+        {
+            return BadRequest(response.Error);
+        }    
+        return Ok(new
+        { Message = "Kullanıcı başarıyla güncellendi", response.Data});
     }
-
     [HttpDelete("{id}")]
     public IActionResult Delete(Guid id)
     {
