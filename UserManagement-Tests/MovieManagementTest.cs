@@ -172,4 +172,23 @@ public class MovieManagementTest
         Assert.AreEqual(4, movies.TotalCount);
         Assert.AreEqual("Undisputed", movies.Data.First().Title);
     }
+    [Test, Order(7)]
+    public void AddRating_ShouldAddRating_Test()
+    {
+        var existingMovie = _context.Movies.First();
+        var newRatingDto = new MovieRatingDto
+        {
+            MovieId = existingMovie.Id,
+            UserId = Guid.NewGuid(),
+            Rating = 9,
+            Note = "Harika"
+        };
+        var result = _movieService.AddRating(newRatingDto);
+        Assert.That(result.Success, Is.True);
+        Assert.That(result.Error, Is.Null);
+        var dbRating = _context.MovieRatings.FirstOrDefault(r => r.MovieId == existingMovie.Id && r.UserId == newRatingDto.UserId);
+        Assert.That(dbRating, Is.Not.Null);
+        Assert.That(dbRating.Rating, Is.EqualTo(9));
+        Assert.That(dbRating.Note, Is.EqualTo("Harika"));
+    }
 }

@@ -10,15 +10,24 @@ namespace UserManagement.Models
         public DbSet<UserModel> Users { get; set; }
         public DbSet<CategoryModel> Categories { get; set; }
         public DbSet<MovieModel> Movies { get; set; }
+        public DbSet<MovieRating> MovieRatings { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<UserModel>()
                 .HasIndex(u => u.Email)
                 .IsUnique();
             modelBuilder.Entity<MovieModel>()
-     .HasOne<CategoryModel>() 
-     .WithMany()              
-     .HasForeignKey(m => m.CategoryId); 
+                 .HasOne<CategoryModel>() 
+                 .WithMany()              
+                 .HasForeignKey(m => m.CategoryId);
+            modelBuilder.Entity<MovieRating>()
+                .HasOne<MovieModel>()
+                .WithMany()
+                .HasForeignKey(r => r.MovieId);        
+            modelBuilder.Entity<MovieRating>()
+                .HasOne<UserModel>()
+                .WithMany()
+                .HasForeignKey(r => r.UserId);
         }
     }
 }

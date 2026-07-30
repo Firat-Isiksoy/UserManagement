@@ -46,6 +46,16 @@ namespace UserManagement.Controllers
             }
             return Ok(new {Message = "Film başarıyla eklendi", response.Data});        
         }
+        [HttpPost("ratings")]
+        public IActionResult AddRating(MovieRatingDto rating)
+        {
+            var response = _movieService.AddRating(rating);
+            if (!response.Success)
+            {
+                return BadRequest(response.Error);
+            }
+            return Ok(new { Message = "Film değerlendirmesi başarıyla eklendi", response.Data });
+        }
         [HttpPut("{id}")]
         public IActionResult Update(Guid id, MovieDto request)
         {

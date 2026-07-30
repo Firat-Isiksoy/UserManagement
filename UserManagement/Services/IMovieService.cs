@@ -10,5 +10,6 @@ namespace UserManagement.Services
     ResponseModel<MovieDto> Create(MovieDto request);
     ResponseModel<MovieDto> Update(Guid Id,MovieDto movie);
     bool Delete(Guid id);
+    ResponseModel<MovieRatingDto> AddRating(MovieRatingDto ratingDto);
     }
 }
