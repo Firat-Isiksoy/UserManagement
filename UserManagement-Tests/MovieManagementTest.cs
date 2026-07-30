@@ -71,7 +71,7 @@ public class MovieManagementTest
                 UpdatedAt = DateTime.UtcNow,
                 CategoryId = _testCategoryId
             },
-                  new MovieModel {
+                new MovieModel {
                 Id = Guid.NewGuid(),
                 Title = "Gladiator",
                 Description = "Maximus Decimus Meridius",
@@ -82,17 +82,29 @@ public class MovieManagementTest
                 UpdatedAt = DateTime.UtcNow,
                 CategoryId = _testCategoryId
             },
+                 new MovieModel {
+                Id = Guid.NewGuid(),
+                Title = "G.O.R.A",
+                Description = "karışık var mı var yükle",
+                Duration = 148,
+                ReleaseYear = 2010,
+                AverageRating = 8.2f,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CategoryId = Guid.NewGuid() 
+            },
         };
         _context.Movies.AddRange(movies);
         _context.SaveChanges();
     }
     [Test, Order(1)]
     public void GetAllMovies_ShouldReturnAllMovies_Test()
-    {
-       
-        var movies = _movieService.GetAll();
-        Assert.AreEqual(4, movies.Count());
-        Assert.AreEqual("MadMax", movies.First().Title);
+    {       
+        var filter = new MovieFilterDto();
+        filter.SortBy = "ReleaseYear";
+        var movies = _movieService.GetAll(filter);
+        Assert.AreEqual(5, movies.TotalCount);
+        Assert.AreEqual("Undisputed", movies.Data.First().Title);
     }
     [Test, Order(2)]
     public void GetById_ShouldReturnMovie_Test()
@@ -151,11 +163,13 @@ public class MovieManagementTest
         Assert.IsNull(dbMovie);
     }
     [Test, Order(6)]
-    public void GetMoviesByCategory_ShouldReturnMoviesByCategory_Test()
+    public void GetAll_ShouldReturnMoviesByCategory_Test()
     {
-        var categoryId = _context.Movies.First().CategoryId;
-        var movies = _movieService.GetMoviesByCategory(categoryId);
-        Assert.IsNotNull(movies);
-        Assert.IsTrue(movies.All(m => m.CategoryId == categoryId));
+        var filter = new MovieFilterDto();
+        filter.SortBy = "ReleaseYear";
+        filter.CategoryId = _testCategoryId;
+        var movies = _movieService.GetAll(filter);
+        Assert.AreEqual(4, movies.TotalCount);
+        Assert.AreEqual("Undisputed", movies.Data.First().Title);
     }
 }
