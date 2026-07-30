@@ -5,8 +5,7 @@ namespace UserManagement.Services
 {
     public interface IMovieService
     {
-    List<MovieDto> GetAll();
-    List<MovieDto> GetMoviesByCategory(Guid categoryId);
+    PagedResponse<MovieDto> GetAll(MovieFilterDto filter);
     MovieDto? GetById(Guid id);
     ResponseModel<MovieDto> Create(MovieDto request);
     ResponseModel<MovieDto> Update(Guid Id,MovieDto movie);

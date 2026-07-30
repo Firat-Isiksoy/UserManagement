@@ -17,23 +17,24 @@ namespace UserManagement.Controllers
             _movieService = movieService;
         }
         [HttpGet]
-        public IActionResult GetAllMovies() => Ok(_movieService.GetAll());
+        public IActionResult GetAll([FromQuery] MovieFilterDto filter)
+        {       
+           try
+           {
+                var movies = _movieService.GetAll(filter);
+                return Ok(movies);
+           }
+           catch (Exception ex)
+           {
+                return BadRequest(ex.Message);
+            }
+        }
         [HttpGet("{id}")]
         public IActionResult Get(Guid id)
         {
             var movie = _movieService.GetById(id);
             return movie is null ? NotFound("Film bulunamadı.") : Ok(movie);
-        }
-        [HttpGet("category/{categoryId}")]
-        public IActionResult GetMoviesByCategory(Guid categoryId)
-        {
-            var movies = _movieService.GetMoviesByCategory(categoryId);
-            if (!movies.Any())
-            {
-                return NotFound("Bu kategoriye ait herhangi bir film bulunamadı.");
-            }          
-            return Ok(movies);          
-        }
+        }       
         [HttpPost]
         public IActionResult Create(MovieDto request)
         {          

@@ -1,4 +1,5 @@
-﻿using UserManagement.DTOs;
+﻿using Microsoft.IdentityModel.Tokens;
+using UserManagement.DTOs;
 using UserManagement.Mappers;
 using UserManagement.Models;
 
@@ -29,13 +30,45 @@ namespace UserManagement.Services
                 Data = newMovie.ToDto()
             };
         }
-        public List<MovieDto> GetAll() => _context.Movies.Select(m => m.ToDto()).ToList();
-        public List<MovieDto> GetMoviesByCategory(Guid categoryId)
+        public PagedResponse<MovieDto> GetAll(MovieFilterDto filter)
         {
-            return _context.Movies
-                   .Where(m => m.CategoryId == categoryId)
-                   .Select(m => m.ToDto())
-                   .ToList();
+            filter ??= new MovieFilterDto();
+            var query = _context.Movies.AsQueryable();
+            if (filter.CategoryId.HasValue)
+            {
+                query = query.Where(m => m.CategoryId == filter.CategoryId.Value);
+            }
+            var totalCount = query.Count();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)filter.PageSize);
+            if (!string.IsNullOrWhiteSpace(filter.SortBy))
+            {
+                query = filter.SortBy.ToLower() switch
+                {                
+                    "title" => query.OrderBy(m => m.Title),
+                    "duration" => query.OrderBy(m => m.Duration),
+                    "averagerating" => query.OrderBy(m => m.AverageRating),
+                    "releaseyear" => query.OrderBy(m => m.ReleaseYear),
+                    _ => query.OrderBy(m => m.Id) 
+                };
+            }
+            else
+            {
+                query = query.OrderBy(m => m.Id);
+            }
+            var movies = query
+                .Skip((filter.PageIndex - 1) * filter.PageSize) 
+                .Take(filter.PageSize)                          
+                .Select(m => m.ToDto())                         
+                .ToList();
+
+            return new PagedResponse<MovieDto>
+            {
+                TotalCount = totalCount,
+                TotalPages = totalPages,
+                CurrentPage = filter.PageIndex,
+                PageSize = filter.PageSize,
+                Data = movies
+            };
         }
         public MovieDto? GetById(Guid id) => _context.Movies.Find(id)?.ToDto();
         public ResponseModel<MovieDto> Update(Guid Id, MovieDto movie)
