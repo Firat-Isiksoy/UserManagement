@@ -104,34 +104,5 @@ namespace UserManagement.Services
             _context.SaveChanges();
             return true;
         }
-        public ResponseModel<MovieRatingDto> AddRating(MovieRatingDto ratingDto)
-        {
-            bool hasAlreadyRated = _context.MovieRatings
-                .Any(r => r.UserId == ratingDto.UserId && r.MovieId == ratingDto.MovieId);
-
-            if (hasAlreadyRated)
-            {
-                return new ResponseModel<MovieRatingDto>
-                {
-                    Success = false,
-                    Error = "Bu kullanıcı zaten filmi değerlendirmiş",
-                    Data = null
-                };
-            }
-
-            var newRating = ratingDto.ToModel();
-            newRating.Id = Guid.NewGuid();
-            newRating.CreatedAt = DateTime.UtcNow;
-
-            _context.MovieRatings.Add(newRating);
-            _context.SaveChanges();
-
-            return new ResponseModel<MovieRatingDto>
-            {
-                Success = true,
-                Error = null,
-                Data = newRating.ToDto()
-            };
-        }
     }
 }

@@ -10,7 +10,7 @@ namespace UserManagement.DTOs
         public Guid UserId { get; set; }
         [Required]
         [Range(1,10)]
-        public int Rating { get; set; }
+        public float Rating { get; set; }
         public string? Note { get; set; }
     }
 }

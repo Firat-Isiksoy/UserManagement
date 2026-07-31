@@ -27,5 +27,12 @@ namespace UserManagement.Mappers
                 Note = ratingDto.Note
             };
         }
+        public static MovieRating UpdateModel (this MovieRating existingRating, MovieRatingDto ratingDto)
+        {
+            if (existingRating == null || ratingDto == null) return existingRating;
+            existingRating.Rating = ratingDto.Rating;
+            existingRating.Note = ratingDto.Note;
+            return existingRating;
+        }
     }
 }
