@@ -43,12 +43,12 @@ namespace UserManagement.Services
             if (!string.IsNullOrWhiteSpace(filter.SortBy))
             {
                 query = filter.SortBy.ToLower() switch
-                {                
+                {
                     "title" => query.OrderBy(m => m.Title),
                     "duration" => query.OrderBy(m => m.Duration),
                     "averagerating" => query.OrderBy(m => m.AverageRating),
                     "releaseyear" => query.OrderBy(m => m.ReleaseYear),
-                    _ => query.OrderBy(m => m.Id) 
+                    _ => query.OrderBy(m => m.Id)
                 };
             }
             else
@@ -56,9 +56,9 @@ namespace UserManagement.Services
                 query = query.OrderBy(m => m.Id);
             }
             var movies = query
-                .Skip((filter.PageIndex - 1) * filter.PageSize) 
-                .Take(filter.PageSize)                          
-                .Select(m => m.ToDto())                         
+                .Skip((filter.PageIndex - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .Select(m => m.ToDto())
                 .ToList();
 
             return new PagedResponse<MovieDto>
@@ -74,26 +74,27 @@ namespace UserManagement.Services
         public ResponseModel<MovieDto> Update(Guid Id, MovieDto movie)
         {
             var existingMovie = _context.Movies.Find(Id);
-            if (existingMovie is null)                
+            if (existingMovie is null)
             {
                 return new ResponseModel<MovieDto>
                 {
                     Success = false,
                     Error = "Aranan film bulunamadı",
                     Data = null
-                };              
-            };
+                };
+            }
+            ;
             movie.UpdateModel(existingMovie);
             existingMovie.UpdatedAt = DateTime.UtcNow;
 
             _context.SaveChanges();
-            
-           return new ResponseModel<MovieDto>
-           {
+
+            return new ResponseModel<MovieDto>
+            {
                 Success = true,
                 Error = null,
                 Data = existingMovie.ToDto()
-           };
+            };
         }
         public bool Delete(Guid id)
         {
