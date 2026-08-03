@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using UserManagement.DTOs;
 using UserManagement.Mappers;
 using UserManagement.Models;
@@ -103,6 +104,27 @@ namespace UserManagement.Services
             _context.Movies.Remove(movie);
             _context.SaveChanges();
             return true;
+        }
+        public ResponseModel<MovieDetailsDto> GetMovieWithInfo(Guid id, PaginationFilter filter)
+        {
+            var movie = _context.Movies.FirstOrDefault(m => m.Id == id);
+
+            if (movie == null) return new ResponseModel<MovieDetailsDto> { Success = false, Error = "Film bulunamadı." };
+            var pagedRatings = _context.MovieRatings
+                .Where(r => r.MovieId == id)
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToList();
+
+            var totalCount = _context.MovieRatings.Count(r => r.MovieId == id);
+
+            var movieDetails = movie.ToDetailsDto(pagedRatings, totalCount, filter.PageNumber, filter.PageSize);
+
+            return new ResponseModel<MovieDetailsDto>
+            {
+                Success = true,
+                Data = movieDetails
+            };
         }
     }
 }

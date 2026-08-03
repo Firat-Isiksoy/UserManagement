@@ -21,9 +21,10 @@ namespace UserManagement.Models
                  .WithMany()              
                  .HasForeignKey(m => m.CategoryId);
             modelBuilder.Entity<MovieRating>()
-                .HasOne<MovieModel>()
-                .WithMany()
-                .HasForeignKey(r => r.MovieId);        
+                   .HasOne<MovieModel>()
+                   .WithMany(m => m.MovieRatings) 
+                   .HasForeignKey(r => r.MovieId)
+                   .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<MovieRating>()
                 .HasOne<UserModel>()
                 .WithMany()

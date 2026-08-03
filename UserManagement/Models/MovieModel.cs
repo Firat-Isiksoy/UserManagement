@@ -16,5 +16,6 @@ namespace UserManagement.Models
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public Guid CategoryId { get; set; }
+        public virtual ICollection<MovieRating> MovieRatings { get; set; } = new List<MovieRating>();
     }
 }

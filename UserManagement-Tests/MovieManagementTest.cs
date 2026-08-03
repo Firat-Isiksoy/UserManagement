@@ -172,4 +172,30 @@ public class MovieManagementTest
         Assert.AreEqual(4, movies.TotalCount);
         Assert.AreEqual("Undisputed", movies.Data.First().Title);
     }
+    [Test, Order(7)]
+    public void GetMovieWithInfo_ShouldReturnMovieAndPagedRatings_Test()
+    {
+        var targetMovie = _context.Movies.First(); 
+
+        var ratings = new List<MovieRating>
+    {
+        new MovieRating { Id = Guid.NewGuid(), MovieId = targetMovie.Id, UserId = Guid.NewGuid(), Rating = 5f, Note = "Harika film" },
+        new MovieRating { Id = Guid.NewGuid(), MovieId = targetMovie.Id, UserId = Guid.NewGuid(), Rating = 4f, Note = "Fena değil" },
+        new MovieRating { Id = Guid.NewGuid(), MovieId = targetMovie.Id, UserId = Guid.NewGuid(), Rating = 3f, Note = "Orta" }
+    };
+        _context.MovieRatings.AddRange(ratings);
+        _context.SaveChanges();
+
+        var filter = new PaginationFilter { PageNumber = 1, PageSize = 2 };
+
+        var result = _movieService.GetMovieWithInfo(targetMovie.Id, filter);
+
+        Assert.IsTrue(result.Success);
+        Assert.IsNotNull(result.Data);
+        Assert.AreEqual(targetMovie.Title, result.Data.Title);
+        Assert.AreEqual(3, result.Data.Ratings.TotalCount); 
+        Assert.AreEqual(2, result.Data.Ratings.Data.Count);  
+        Assert.AreEqual(1, result.Data.Ratings.CurrentPage);
+        Assert.AreEqual(2, result.Data.Ratings.TotalPages);  
+    }
 }

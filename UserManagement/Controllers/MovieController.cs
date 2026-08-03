@@ -63,6 +63,13 @@ namespace UserManagement.Controllers
             var deleted = _movieService.Delete(id);
             return deleted ? Ok("Film başarıyla silindi") : NotFound("Film bulunamadı");
         }
+        [HttpGet("{id}/details")]
+        public IActionResult GetMovieWithInfo(Guid id, [FromQuery] PaginationFilter filter)
+        {
+            var result = _movieService.GetMovieWithInfo(id, filter);
+            if (!result.Success) return NotFound(result);
+            return Ok(result);
+        }
     }
 }
 

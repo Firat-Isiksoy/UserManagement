@@ -34,5 +34,16 @@ namespace UserManagement.Mappers
             existingRating.Note = ratingDto.Note;
             return existingRating;
         }
+        public static RatingDetailsDto ToDetailDto(this MovieRating rating)
+        {
+            if (rating == null) return null;
+
+            return new RatingDetailsDto
+            {
+                UserId = rating.UserId,
+                Rating = rating.Rating,
+                Note = rating.Note
+            };
+        }
     }
 }

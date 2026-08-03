@@ -45,7 +45,7 @@ public class RatingManagementTest
             Title = "Test Movie",
             Description = "This is a test movie.",
             ReleaseYear = 2009,
-            AverageRating = 0f, // float formatı
+            AverageRating = 0f, 
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             CategoryId = Guid.NewGuid()
