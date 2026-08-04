@@ -107,14 +107,24 @@ namespace UserManagement.Services
         }
         public ResponseModel<MovieDetailsDto> GetMovieWithInfo(Guid id, PaginationFilter filter)
         {
-            var movie = _context.Movies.FirstOrDefault(m => m.Id == id);
+            var movie = _context.Movies
+                .Include(m => m.Category) 
+                .FirstOrDefault(m => m.Id == id);
 
             if (movie == null) return new ResponseModel<MovieDetailsDto> { Success = false, Error = "Film bulunamadı." };
             var pagedRatings = _context.MovieRatings
-                .Where(r => r.MovieId == id)
-                .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToList();
+                    .Where(r => r.MovieId == id)
+                    .Skip((filter.PageNumber - 1) * filter.PageSize)
+                    .Take(filter.PageSize)
+                    .Select(r => new RatingDetailsDto
+             {
+                     UserId = r.UserId,
+                     FirstName = r.User.FirstName, 
+                     LastName = r.User.LastName,   
+                     Rating = r.Rating,
+                     Note = r.Note
+                })
+                   .ToList();
 
             var totalCount = _context.MovieRatings.Count(r => r.MovieId == id);
 

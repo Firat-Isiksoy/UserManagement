@@ -9,5 +9,6 @@ public class MovieDetailsDto
     public int ReleaseYear { get; set; }
     public float AverageRating { get; set; }
     public Guid CategoryId { get; set; }
+    public string CategoryName { get; set; }
     public PagedResponse<RatingDetailsDto> Ratings { get; set; }
 }

@@ -1,4 +1,6 @@
-﻿using UserManagement.DTOs;
+﻿using System;
+using System.Linq.Expressions; // YENİ: Expression Selector için gerekli
+using UserManagement.DTOs;
 using UserManagement.Models;
 
 namespace UserManagement.Mappers
@@ -27,7 +29,7 @@ namespace UserManagement.Mappers
                 Note = ratingDto.Note
             };
         }
-        public static MovieRating UpdateModel (this MovieRating existingRating, MovieRatingDto ratingDto)
+        public static MovieRating UpdateModel(this MovieRating existingRating, MovieRatingDto ratingDto)
         {
             if (existingRating == null || ratingDto == null) return existingRating;
             existingRating.Rating = ratingDto.Rating;
@@ -41,9 +43,19 @@ namespace UserManagement.Mappers
             return new RatingDetailsDto
             {
                 UserId = rating.UserId,
+                FirstName = rating.User?.FirstName ?? "Bilinmeyen",
+                LastName = rating.User?.LastName ?? "Kullanıcı",
                 Rating = rating.Rating,
                 Note = rating.Note
             };
         }
+        public static Expression<Func<MovieRating, RatingDetailsDto>> ToDetailDtoSelector => rating => new RatingDetailsDto
+        {
+            UserId = rating.UserId,
+            FirstName = rating.User != null ? rating.User.FirstName : "Bilinmeyen",
+            LastName = rating.User != null ? rating.User.LastName : "Kullanıcı",
+            Rating = rating.Rating,
+            Note = rating.Note
+        };
     }
 }

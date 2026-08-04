@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UserManagement.Models;
 
@@ -11,9 +12,11 @@ using UserManagement.Models;
 namespace UserManagement.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260804214719_FixedUserRatingRelation")]
+    partial class FixedUserRatingRelation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -139,13 +142,11 @@ namespace UserManagement.Migrations
 
             modelBuilder.Entity("UserManagement.Models.MovieModel", b =>
                 {
-                    b.HasOne("UserManagement.Models.CategoryModel", "Category")
+                    b.HasOne("UserManagement.Models.CategoryModel", null)
                         .WithMany()
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Category");
                 });
 
             modelBuilder.Entity("UserManagement.Models.MovieRating", b =>
