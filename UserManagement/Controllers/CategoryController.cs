@@ -1,13 +1,14 @@
 ﻿using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UserManagement.DTOs;
-using UserManagement.Models;
 using UserManagement.Services;
 
 namespace UserManagement.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
@@ -18,6 +19,7 @@ namespace UserManagement.Controllers
         }
         [HttpGet]
         public IActionResult GetAllCategories() => Ok(_categoryService.GetAll());
+
         [HttpGet("{id}")]
         public IActionResult Get(Guid id)
         {
@@ -25,32 +27,29 @@ namespace UserManagement.Controllers
             return category is null ? NotFound("Kategori bulunamadı.") : Ok(category);
         }
         [HttpPost]
-        public IActionResult Create(CategoryDto request)
+        [Authorize(Roles = "Admin")]
+        public IActionResult Create([FromBody] CategoryDto request)
         {
             var response = _categoryService.Create(request);
+            if (!response.Success) return BadRequest(response);
 
-            if (!response.Success)
-            {
-                return BadRequest(response.Error);
-            }
-            return Ok(new { Message = "Kategori başarıyla eklendi", response.Data });
-        }     
+            return Ok(response);
+        }
         [HttpPut("{id}")]
-        public IActionResult Update(Guid id, CategoryDto request)
-        {            
-            var response = _categoryService.Update(id,request);
-               if (!response.Success)
-               {
-                   return BadRequest(response.Error);
-               }
-               return Ok(new { Message = "Kategori başarıyla güncellendi", response.Data });
+        [Authorize(Roles = "Admin")]
+        public IActionResult Update(Guid id, [FromBody] CategoryDto request)
+        {
+            var response = _categoryService.Update(id, request);
+            if (!response.Success) return BadRequest(response);
+
+            return Ok(response);
         }
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public IActionResult Delete(Guid id)
         {
-             var deleted = _categoryService.Delete(id);
-             return deleted ? Ok("Kategori başarıyla silindi") : NotFound("Kategori bulunamadı.");
-        } 
+            var deleted = _categoryService.Delete(id);
+            return deleted ? Ok("Kategori başarıyla silindi") : NotFound("Kategori bulunamadı.");
+        }
     }
 }
-
