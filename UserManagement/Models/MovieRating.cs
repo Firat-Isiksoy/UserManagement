@@ -10,5 +10,6 @@ namespace UserManagement.Models
         public float Rating { get; set; }
         public DateTime CreatedAt { get; set; }
         public string? Note { get; set; }
+        public UserModel User { get; set; }
     }
 }

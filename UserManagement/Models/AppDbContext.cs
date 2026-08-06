@@ -17,17 +17,20 @@ namespace UserManagement.Models
                 .HasIndex(u => u.Email)
                 .IsUnique();
             modelBuilder.Entity<MovieModel>()
-                 .HasOne<CategoryModel>() 
-                 .WithMany()              
-                 .HasForeignKey(m => m.CategoryId);
-            modelBuilder.Entity<MovieRating>()
-                .HasOne<MovieModel>()
+                .HasOne(m => m.Category) 
                 .WithMany()
-                .HasForeignKey(r => r.MovieId);        
+                .HasForeignKey(m => m.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<MovieRating>()
-                .HasOne<UserModel>()
-                .WithMany()
-                .HasForeignKey(r => r.UserId);
+                   .HasOne<MovieModel>()
+                   .WithMany(m => m.MovieRatings) 
+                   .HasForeignKey(r => r.MovieId)
+                   .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<MovieRating>()
+                 .HasOne(r => r.User)
+                 .WithMany()
+                 .HasForeignKey(r => r.UserId)
+                 .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

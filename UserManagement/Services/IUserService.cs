@@ -5,9 +5,9 @@ namespace UserManagement.Services
     public interface IUserService
     {
         List<UserDto> GetAll();
-        UserDto? GetById(Guid id);
-        ResponseModel<UserDto> Create(UserDto request);
-        ResponseModel<UserDto> Update(Guid id, UserDto request);
+        UserDetailsDto? GetById(Guid id);
+        ResponseModel<UserDetailsDto> Create(UserCreateDto request);
+        ResponseModel<UserDetailsDto> Update(Guid id, UserCreateDto request);
         bool Delete(Guid id);
     }
 }

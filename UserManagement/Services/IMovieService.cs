@@ -7,6 +7,7 @@ namespace UserManagement.Services
     {
     PagedResponse<MovieDto> GetAll(MovieFilterDto filter);
     MovieDto? GetById(Guid id);
+    ResponseModel<MovieDetailsDto> GetMovieWithInfo(Guid id, PaginationFilter filter);
     ResponseModel<MovieDto> Create(MovieDto request);
     ResponseModel<MovieDto> Update(Guid Id,MovieDto movie);
     bool Delete(Guid id);

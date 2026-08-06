@@ -1,6 +1,9 @@
-﻿using Azure.Core;
-using UserManagement.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using UserManagement.DTOs;
 using UserManagement.Mappers;
+using UserManagement.Models;
 
 namespace UserManagement.Services
 {
@@ -12,15 +15,13 @@ namespace UserManagement.Services
         {
             _context = context;
         }
-
         public List<UserDto> GetAll() => _context.Users.Select(u => u.ToDto()).ToList();
-        public UserDto? GetById(Guid id) => _context.Users.Find(id)?.ToDto();
-
-        public ResponseModel<UserDto> Create(UserDto request)
+        public UserDetailsDto? GetById(Guid id) => _context.Users.Find(id)?.ToDetailsDto();
+        public ResponseModel<UserDetailsDto> Create(UserCreateDto request)
         {
             if (_context.Users.Any(u => u.Email == request.Email))
             {
-                return new ResponseModel<UserDto>
+                return new ResponseModel<UserDetailsDto>
                 {
                     Success = false,
                     Error = "Bu e-posta adresi zaten kayıtlı",
@@ -28,24 +29,24 @@ namespace UserManagement.Services
                 };
             }
             var userModel = request.ToModel();
-            userModel.Id = Guid.NewGuid(); 
+            userModel.Id = Guid.NewGuid();
 
             _context.Users.Add(userModel);
             _context.SaveChanges();
-         
-            return new ResponseModel<UserDto>
+
+            return new ResponseModel<UserDetailsDto>
             {
                 Success = true,
                 Error = null,
-                Data = userModel.ToDto()
+                Data = userModel.ToDetailsDto()
             };
         }
-        public ResponseModel<UserDto> Update(Guid id, UserDto request)
+        public ResponseModel<UserDetailsDto> Update(Guid id, UserCreateDto request)
         {
             var existingUser = _context.Users.Find(id);
             if (existingUser == null)
             {
-                return new ResponseModel<UserDto>
+                return new ResponseModel<UserDetailsDto>
                 {
                     Success = false,
                     Error = "Kullanıcı bulunamadı",
@@ -54,7 +55,7 @@ namespace UserManagement.Services
             }
             if (_context.Users.Any(u => u.Email == request.Email && u.Id != id))
             {
-                return new ResponseModel<UserDto>
+                return new ResponseModel<UserDetailsDto>
                 {
                     Success = false,
                     Error = "Bu e-posta başka birine ait",
@@ -63,12 +64,12 @@ namespace UserManagement.Services
             }
             request.UpdateModel(existingUser);
             _context.SaveChanges();
-           
-            return new ResponseModel<UserDto>
+
+            return new ResponseModel<UserDetailsDto>
             {
                 Success = true,
                 Error = null,
-                Data = existingUser.ToDto()
+                Data = existingUser.ToDetailsDto()
             };
         }
         public bool Delete(Guid id)

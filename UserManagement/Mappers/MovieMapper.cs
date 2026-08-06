@@ -1,5 +1,6 @@
 ﻿using UserManagement.DTOs;
 using UserManagement.Models;
+using System.Linq;
 
 namespace UserManagement.Mappers
 {
@@ -41,6 +42,36 @@ namespace UserManagement.Mappers
             existingMovie.ReleaseYear = dto.ReleaseYear;
             existingMovie.AverageRating = dto.AverageRating;
             existingMovie.CategoryId = dto.CategoryId;
+        }
+        public static MovieDetailsDto ToDetailsDto(
+             this MovieModel movie,
+             IEnumerable<RatingDetailsDto> pagedRatings,
+             int totalCount,
+             int currentPage,
+             int pageSize)
+        {
+            if (movie == null) return null;
+
+            return new MovieDetailsDto
+            {
+                Id = movie.Id,
+                Title = movie.Title,
+                Description = movie.Description,
+                Duration = movie.Duration,
+                ReleaseYear = movie.ReleaseYear ?? 0,
+                AverageRating = movie.AverageRating,
+                CategoryId = movie.CategoryId,
+                CategoryName = movie.Category != null ? movie.Category.Name : "Kategori Yok",
+
+                Ratings = new PagedResponse<RatingDetailsDto>
+                {
+                    TotalCount = totalCount,
+                    CurrentPage = currentPage,
+                    PageSize = pageSize,
+                    TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize),
+                    Data = pagedRatings != null ? pagedRatings.ToList() : new List<RatingDetailsDto>()
+                }
+            };
         }
     }
 }

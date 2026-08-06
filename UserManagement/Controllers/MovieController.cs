@@ -1,14 +1,14 @@
 ﻿using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UserManagement.DTOs;
-using UserManagement.Models;
 using UserManagement.Services;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace UserManagement.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class MovieController : ControllerBase
     {
         private readonly IMovieService _movieService;
@@ -18,51 +18,47 @@ namespace UserManagement.Controllers
         }
         [HttpGet]
         public IActionResult GetAll([FromQuery] MovieFilterDto filter)
-        {       
-           try
-           {
-                var movies = _movieService.GetAll(filter);
-                return Ok(movies);
-           }
-           catch (Exception ex)
-           {
-                return BadRequest(ex.Message);
-            }
+        {
+            var movies = _movieService.GetAll(filter);
+            return Ok(movies);
         }
         [HttpGet("{id}")]
         public IActionResult Get(Guid id)
         {
             var movie = _movieService.GetById(id);
             return movie is null ? NotFound("Film bulunamadı.") : Ok(movie);
-        }       
+        }
         [HttpPost]
-        public IActionResult Create(MovieDto request)
-        {          
+        [Authorize(Roles = "Admin")]
+        public IActionResult Create([FromBody] MovieDto request)
+        {
             var response = _movieService.Create(request);
+            if (!response.Success) return BadRequest(response);
 
-            if (!response.Success)
-            {
-                return BadRequest(response.Error);
-            }
-            return Ok(new {Message = "Film başarıyla eklendi", response.Data});        
+            return Ok(response);
         }
         [HttpPut("{id}")]
-        public IActionResult Update(Guid id, MovieDto request)
+        [Authorize(Roles = "Admin")]
+        public IActionResult Update(Guid id, [FromBody] MovieDto request)
         {
-            var response = _movieService.Update(id,request);
+            var response = _movieService.Update(id, request);
+            if (!response.Success) return BadRequest(response);
 
-            if (!response.Success)
-            {
-                return BadRequest(response.Error);
-            }
-            return Ok(new{ Message = "Film başarıyla güncellendi", response.Data });
+            return Ok(response);
         }
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public IActionResult Delete(Guid id)
         {
             var deleted = _movieService.Delete(id);
             return deleted ? Ok("Film başarıyla silindi") : NotFound("Film bulunamadı");
         }
+        [HttpGet("{id}/details")]
+        public IActionResult GetMovieWithInfo(Guid id, [FromQuery] PaginationFilter filter)
+        {
+            var result = _movieService.GetMovieWithInfo(id, filter);
+            if (!result.Success) return NotFound(result);
+            return Ok(result);
+        }
     }
 }
-
