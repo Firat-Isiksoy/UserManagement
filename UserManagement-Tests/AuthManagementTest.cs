@@ -36,7 +36,6 @@ namespace UserManagement_Tests
 
             _authService = new AuthService(_context, _configuration);
         }
-
         [OneTimeTearDown]
         public void Cleanup()
         {
@@ -70,7 +69,6 @@ namespace UserManagement_Tests
             _context.Users.AddRange(users);
             _context.SaveChanges();
         }
-
         [Test, Order(1)]
         public void Login_WithValidCredentials_ShouldReturnToken_Test()
         {
@@ -84,8 +82,8 @@ namespace UserManagement_Tests
 
             Assert.That(result.Success, Is.True);
             Assert.That(result.Error, Is.Null);
-            Assert.That(result.Data, Is.Not.Null); 
-            Assert.That(result.Data, Does.StartWith("eyJ")); 
+            Assert.That(result.Data, Is.Not.Null);
+            Assert.That(result.Data, Does.StartWith("eyJ"));
         }
 
         [Test, Order(2)]
@@ -103,7 +101,6 @@ namespace UserManagement_Tests
             Assert.That(result.Error, Is.EqualTo("Geçersiz e-posta veya şifre."));
             Assert.That(result.Data, Is.Null);
         }
-
         [Test, Order(3)]
         public void Login_WithInvalidPassword_ShouldFail_Test()
         {
@@ -119,8 +116,21 @@ namespace UserManagement_Tests
             Assert.That(result.Error, Is.EqualTo("Geçersiz e-posta veya şifre."));
             Assert.That(result.Data, Is.Null);
         }
-
         [Test, Order(4)]
+        public void Login_TokenShouldContainCorrectRoleClaim_Test()
+        {
+            var loginDto = new LoginDto { Email = "admin@test.com", Password = "password123" };
+            var result = _authService.Login(loginDto);
+
+            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(result.Data);
+            var roleClaim = jwt.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role
+                                                          || c.Type == "role");
+
+            Assert.That(roleClaim, Is.Not.Null, "Token içinde role claim'i bulunamadı.");
+            Assert.That(roleClaim!.Value, Is.EqualTo("Admin"));
+        }
+        [Test, Order(5)]
         public void Register_ShouldCreateUserAndReturnDetails_Test()
         {
             var registerDto = new UserCreateDto
@@ -139,8 +149,39 @@ namespace UserManagement_Tests
             Assert.That(result.Data.Email, Is.EqualTo("yeniuye@test.com"));
             Assert.That(result.Data.Role, Is.EqualTo("User"));
         }
+        [Test, Order(6)]
+        public void Register_WithDuplicateEmail_ShouldFail_Test()
+        {
+            var registerDto = new UserCreateDto
+            {
+                FirstName = "Tekrar",
+                LastName = "Kayit",
+                Email = "admin@test.com", 
+                Password = "herhangibirsifre"
+            };
 
-        [Test, Order(5)]
+            var result = _authService.Register(registerDto);
+
+            Assert.That(result.Success, Is.False);
+            Assert.That(result.Error, Is.EqualTo("Bu e-posta adresi zaten kayıtlı"));
+        }
+        [Test, Order(7)]
+        public void Register_ShouldAlwaysAssignUserRole_RegardlessOfInput_Test()
+        {
+            var registerDto = new UserCreateDto
+            {
+                FirstName = "Kotu",
+                LastName = "Niyetli",
+                Email = "kotuniyetli@test.com",
+                Password = "sifre123"
+            };
+
+            var result = _authService.Register(registerDto);
+
+            Assert.That(result.Success, Is.True);
+            Assert.That(result.Data!.Role, Is.EqualTo("User"));
+        }
+        [Test, Order(8)]
         public void DeleteAccount_ShouldRemoveUser_Test()
         {
             var userToDelete = new UserModel
@@ -157,48 +198,17 @@ namespace UserManagement_Tests
             _context.SaveChanges();
 
             var isDeleted = _authService.DeleteAccount(userToDelete.Id);
+
             Assert.That(isDeleted, Is.True);
             var dbCheck = _context.Users.FirstOrDefault(u => u.Id == userToDelete.Id);
             Assert.That(dbCheck, Is.Null);
         }
-        [Test, Order(6)]
-        public void Auth_MissingOrInvalidCredentials_ShouldReturnUnauthorized_401_Test()
+        [Test, Order(9)]
+        public void DeleteAccount_WithNonExistentId_ShouldReturnFalse_Test()
         {
-            var invalidLogin = new LoginDto
-            {
-                Email = "olmayan@test.com",
-                Password = "yanlissifre"
-            };
+            var isDeleted = _authService.DeleteAccount(Guid.NewGuid());
 
-            var result = _authService.Login(invalidLogin);
-            Assert.That(result.Success, Is.False);
-            Assert.That(result.Error, Is.EqualTo("Geçersiz e-posta veya şifre."));
-        }
-
-        [Test, Order(7)]
-        public void User_WithStandardRole_TryingAdminAction_ShouldBeForbidden_403_Test()
-        {
-            var standardUser = _context.Users.FirstOrDefault(u => u.Email == "user@test.com");
-
-            Assert.That(standardUser, Is.Not.Null);
-            bool isAdmin = standardUser.Role == "Admin";
-            Assert.That(isAdmin, Is.False, "Standart kullanıcı Admin yetkisine sahip olmamalı!");
-        }
-
-        [Test, Order(8)]
-        public void Auth_WithValidCredentials_ShouldReturnSuccess_Test()
-        {
-            var validLogin = new LoginDto
-            {
-                Email = "admin@test.com",
-                Password = "password123"
-            };
-
-            var result = _authService.Login(validLogin);
-
-            Assert.That(result.Success, Is.True);
-            Assert.That(result.Error, Is.Null);
-            Assert.That(result.Data, Is.Not.Null);
+            Assert.That(isDeleted, Is.False);
         }
     }
 }
