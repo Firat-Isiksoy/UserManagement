@@ -13,6 +13,7 @@ namespace UserManagement.Services
         {
             _context = context;
         }
+
         public ResponseModel<WatchlistDto> AddToWatchlist(Guid userId, WatchlistCreateDto request)
         {
             var movie = _context.Movies.Find(request.MovieId);
@@ -25,6 +26,7 @@ namespace UserManagement.Services
                     Data = null
                 };
             }
+
             var existing = _context.Watchlists
                 .FirstOrDefault(w => w.UserId == userId && w.MovieId == request.MovieId);
 
@@ -36,13 +38,10 @@ namespace UserManagement.Services
                     Error = "Bu film zaten izleme listenizde.",
                     Data = null
                 };
-            }          
-            var entry = request.ToModel(userId)!;
-            entry.Id = Guid.NewGuid();
-            entry.AddedAt = DateTime.UtcNow;
-            entry.IsWatched = false;
-            entry.WatchedAt = null;
-            entry.Movie = movie; 
+            }
+
+            // MAPPER DEVREDE: Bütün atama işlemi tek satıra indi!
+            var entry = request.ToUnwatchedModel(userId, movie);
 
             _context.Watchlists.Add(entry);
             _context.SaveChanges();
@@ -54,6 +53,7 @@ namespace UserManagement.Services
                 Data = entry.ToDto()
             };
         }
+
         public ResponseModel<WatchlistDto> MarkAsWatched(Guid userId, WatchlistCreateDto request)
         {
             var movie = _context.Movies.Find(request.MovieId);
@@ -66,25 +66,20 @@ namespace UserManagement.Services
                     Data = null
                 };
             }
+
             var entry = _context.Watchlists
                 .FirstOrDefault(w => w.UserId == userId && w.MovieId == request.MovieId);
 
             if (entry == null)
             {
-                entry = request.ToModel(userId)!;
-                entry.Id = Guid.NewGuid();
-                entry.AddedAt = DateTime.UtcNow;
-                entry.IsWatched = true;
-                entry.WatchedAt = DateTime.UtcNow;
-                entry.Movie = movie;
-
+                // MAPPER DEVREDE: Yeni kayıt + İzlendi (Upsert)
+                entry = request.ToWatchedModel(userId, movie);
                 _context.Watchlists.Add(entry);
             }
             else
             {
-                entry.IsWatched = true;
-                entry.WatchedAt = DateTime.UtcNow;
-                entry.Movie ??= movie; 
+                // MAPPER DEVREDE: Var olan kaydı İzlendi olarak güncelle
+                entry.UpdateAsWatched(movie);
             }
 
             _context.SaveChanges();
@@ -96,6 +91,7 @@ namespace UserManagement.Services
                 Data = entry.ToDto()
             };
         }
+
         public ResponseModel<List<WatchlistDto>> GetWatchlist(Guid userId, bool? watchedFilter = null)
         {
             var query = _context.Watchlists

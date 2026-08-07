@@ -12,8 +12,8 @@ using UserManagement.Models;
 namespace UserManagement.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260807094657_AddWatchlistTable")]
-    partial class AddWatchlistTable
+    [Migration("20260807123232_AddWatchlist")]
+    partial class AddWatchlist
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -148,6 +148,36 @@ namespace UserManagement.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("UserManagement.Models.WatchlistModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsWatched")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("MovieId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("WatchedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MovieId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Watchlists");
+                });
+
             modelBuilder.Entity("UserManagement.Models.MovieModel", b =>
                 {
                     b.HasOne("UserManagement.Models.CategoryModel", "Category")
@@ -172,6 +202,25 @@ namespace UserManagement.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("UserManagement.Models.WatchlistModel", b =>
+                {
+                    b.HasOne("UserManagement.Models.MovieModel", "Movie")
+                        .WithMany()
+                        .HasForeignKey("MovieId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("UserManagement.Models.UserModel", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Movie");
 
                     b.Navigation("User");
                 });
