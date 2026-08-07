@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using BCrypt.Net;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using UserManagement.DTOs;
@@ -14,10 +15,6 @@ using UserManagement.Models;
 
 namespace UserManagement_Tests
 {
-    /// <summary>
-    /// Gerçek HTTP pipeline'ını (Authentication + Authorization middleware, [Authorize] attribute'ları)
-    /// uçtan uca test eder.
-    /// </summary>
     [TestFixture]
     public class AuthorizationIntegrationTests
     {
@@ -27,9 +24,18 @@ namespace UserManagement_Tests
         [OneTimeSetUp]
         public void Setup()
         {
+            // 1. Program.cs'in daha en başında okuyabilmesi için ortam değişkenlerini (Environment Variables) atıyoruz.
+            // JSON'daki iki nokta (:) yerine ortam değişkenlerinde çift alt çizgi (__) kullanılır.
+            Environment.SetEnvironmentVariable("JwtSettings__SecretKey", "TestOrtamiIcinGecerliUzunluktaBirSecretKey123!@#");
+            Environment.SetEnvironmentVariable("JwtSettings__Issuer", "UserManagementAPI");
+            Environment.SetEnvironmentVariable("JwtSettings__Audience", "UserManagementClient");
+
             _factory = new WebApplicationFactory<Program>()
                 .WithWebHostBuilder(builder =>
                 {
+                    // DİKKAT: Eski yazdığımız ConfigureAppConfiguration bloğunu tamamen sildik!
+                    // Artık sistem her şeyi yukarıdaki Environment değerlerinden çekecek.
+
                     builder.ConfigureServices(services =>
                     {
                         var descriptor = services.SingleOrDefault(
