@@ -17,12 +17,14 @@ namespace UserManagement.Controllers
             _movieService = movieService;
         }
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult GetAll([FromQuery] MovieFilterDto filter)
         {
             var movies = _movieService.GetAll(filter);
             return Ok(movies);
         }
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public IActionResult Get(Guid id)
         {
             var movie = _movieService.GetById(id);
@@ -54,6 +56,7 @@ namespace UserManagement.Controllers
             return deleted ? Ok("Film başarıyla silindi") : NotFound("Film bulunamadı");
         }
         [HttpGet("{id}/details")]
+        [AllowAnonymous]
         public IActionResult GetMovieWithInfo(Guid id, [FromQuery] PaginationFilter filter)
         {
             var result = _movieService.GetMovieWithInfo(id, filter);

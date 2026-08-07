@@ -18,9 +18,11 @@ namespace UserManagement.Controllers
             _categoryService = categoryService;
         }
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult GetAllCategories() => Ok(_categoryService.GetAll());
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public IActionResult Get(Guid id)
         {
             var category = _categoryService.GetById(id);

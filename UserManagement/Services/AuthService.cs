@@ -1,6 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using BCrypt.Net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using UserManagement.DTOs;
@@ -19,12 +20,11 @@ namespace UserManagement.Services
             _context = context;
             _configuration = configuration;
         }
-
         public ResponseModel<string> Login(LoginDto request)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Email == request.Email && u.Password == request.Password);
+            var user = _context.Users.FirstOrDefault(u => u.Email == request.Email);
 
-            if (user == null)
+            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
             {
                 return new ResponseModel<string>
                 {
@@ -38,7 +38,7 @@ namespace UserManagement.Services
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Role, user.Role)
-            };            
+            };
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var secretKey = jwtSettings["SecretKey"];
 
@@ -49,10 +49,10 @@ namespace UserManagement.Services
                 issuer: jwtSettings["Issuer"],
                 audience: jwtSettings["Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddHours(2),
+                expires: DateTime.UtcNow.AddHours(2),
                 signingCredentials: creds
             );
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);           
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
             return new ResponseModel<string>
             {
                 Success = true,
@@ -73,6 +73,7 @@ namespace UserManagement.Services
             }
             var userModel = request.ToModel();
             userModel.Id = Guid.NewGuid();
+            userModel.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
             _context.Users.Add(userModel);
             _context.SaveChanges();
@@ -84,6 +85,7 @@ namespace UserManagement.Services
                 Data = userModel.ToDetailsDto()
             };
         }
+
         public ResponseModel<UserDetailsDto> UpdateProfile(Guid userId, UserCreateDto request)
         {
             var existingUser = _context.Users.Find(userId);
@@ -106,7 +108,13 @@ namespace UserManagement.Services
                     Data = null
                 };
             }
+
             request.UpdateModel(existingUser);
+            if (!string.IsNullOrWhiteSpace(request.Password))
+            {
+                existingUser.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
+            }
+
             _context.SaveChanges();
             return new ResponseModel<UserDetailsDto>
             {
@@ -115,6 +123,7 @@ namespace UserManagement.Services
                 Data = existingUser.ToDetailsDto()
             };
         }
+
         public bool DeleteAccount(Guid userId)
         {
             var user = _context.Users.Find(userId);

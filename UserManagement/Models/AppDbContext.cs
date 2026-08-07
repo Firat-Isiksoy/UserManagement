@@ -11,6 +11,7 @@ namespace UserManagement.Models
         public DbSet<CategoryModel> Categories { get; set; }
         public DbSet<MovieModel> Movies { get; set; }
         public DbSet<MovieRating> MovieRatings { get; set; }
+        public DbSet<WatchlistModel> Watchlists { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<UserModel>()

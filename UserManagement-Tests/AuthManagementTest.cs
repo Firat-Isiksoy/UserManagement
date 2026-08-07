@@ -24,10 +24,11 @@ namespace UserManagement_Tests
 
             SeedDatabase();
 
-            var inMemorySettings = new Dictionary<string, string?> {
-                {"JwtSettings:SecretKey", "BuCokGizliVeGucluBirSifrelemeAnahtaridir123*!"},
-                {"JwtSettings:Issuer", "UserManagementAPI"},
-                {"JwtSettings:Audience", "UserManagementClient"}
+            var inMemorySettings = new Dictionary<string, string?>
+            {
+                { "JwtSettings:SecretKey", "BuCokGizliVeGucluBirSifrelemeAnahtaridir123*!" },
+                { "JwtSettings:Issuer", "UserManagementAPI" },
+                { "JwtSettings:Audience", "UserManagementClient" }
             };
 
             _configuration = new ConfigurationBuilder()
@@ -36,14 +37,19 @@ namespace UserManagement_Tests
 
             _authService = new AuthService(_context, _configuration);
         }
+
         [OneTimeTearDown]
         public void Cleanup()
         {
             _context.Database.EnsureDeleted();
             _context.Dispose();
         }
+
         private void SeedDatabase()
         {
+            if (_context.Users.Any())
+                return;
+
             var users = new List<UserModel>
             {
                 new UserModel
@@ -52,7 +58,7 @@ namespace UserManagement_Tests
                     FirstName = "Admin",
                     LastName = "Boss",
                     Email = "admin@test.com",
-                    Password = "password123",
+                    Password = BCrypt.Net.BCrypt.HashPassword("password123"),
                     Role = "Admin"
                 },
                 new UserModel
@@ -61,7 +67,7 @@ namespace UserManagement_Tests
                     FirstName = "Standart",
                     LastName = "User",
                     Email = "user@test.com",
-                    Password = "password123",
+                    Password = BCrypt.Net.BCrypt.HashPassword("password123"),
                     Role = "User"
                 }
             };
@@ -69,6 +75,7 @@ namespace UserManagement_Tests
             _context.Users.AddRange(users);
             _context.SaveChanges();
         }
+
         [Test, Order(1)]
         public void Login_WithValidCredentials_ShouldReturnToken_Test()
         {
@@ -101,6 +108,7 @@ namespace UserManagement_Tests
             Assert.That(result.Error, Is.EqualTo("Geçersiz e-posta veya şifre."));
             Assert.That(result.Data, Is.Null);
         }
+
         [Test, Order(3)]
         public void Login_WithInvalidPassword_ShouldFail_Test()
         {
@@ -116,20 +124,31 @@ namespace UserManagement_Tests
             Assert.That(result.Error, Is.EqualTo("Geçersiz e-posta veya şifre."));
             Assert.That(result.Data, Is.Null);
         }
+
         [Test, Order(4)]
         public void Login_TokenShouldContainCorrectRoleClaim_Test()
         {
-            var loginDto = new LoginDto { Email = "admin@test.com", Password = "password123" };
+            var loginDto = new LoginDto
+            {
+                Email = "admin@test.com",
+                Password = "password123"
+            };
+
             var result = _authService.Login(loginDto);
+
+            Assert.That(result.Success, Is.True);
 
             var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
             var jwt = handler.ReadJwtToken(result.Data);
-            var roleClaim = jwt.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role
-                                                          || c.Type == "role");
+
+            var roleClaim = jwt.Claims.FirstOrDefault(c =>
+                c.Type == System.Security.Claims.ClaimTypes.Role ||
+                c.Type == "role");
 
             Assert.That(roleClaim, Is.Not.Null, "Token içinde role claim'i bulunamadı.");
             Assert.That(roleClaim!.Value, Is.EqualTo("Admin"));
         }
+
         [Test, Order(5)]
         public void Register_ShouldCreateUserAndReturnDetails_Test()
         {
@@ -148,7 +167,14 @@ namespace UserManagement_Tests
             Assert.That(result.Data, Is.Not.Null);
             Assert.That(result.Data.Email, Is.EqualTo("yeniuye@test.com"));
             Assert.That(result.Data.Role, Is.EqualTo("User"));
+
+            var user = _context.Users.FirstOrDefault(u => u.Email == "yeniuye@test.com");
+
+            Assert.That(user, Is.Not.Null);
+            Assert.That(user!.Password, Is.Not.EqualTo("securepassword"));
+            Assert.That(BCrypt.Net.BCrypt.Verify("securepassword", user.Password), Is.True);
         }
+
         [Test, Order(6)]
         public void Register_WithDuplicateEmail_ShouldFail_Test()
         {
@@ -156,7 +182,7 @@ namespace UserManagement_Tests
             {
                 FirstName = "Tekrar",
                 LastName = "Kayit",
-                Email = "admin@test.com", 
+                Email = "admin@test.com",
                 Password = "herhangibirsifre"
             };
 
@@ -165,6 +191,7 @@ namespace UserManagement_Tests
             Assert.That(result.Success, Is.False);
             Assert.That(result.Error, Is.EqualTo("Bu e-posta adresi zaten kayıtlı"));
         }
+
         [Test, Order(7)]
         public void Register_ShouldAlwaysAssignUserRole_RegardlessOfInput_Test()
         {
@@ -181,6 +208,7 @@ namespace UserManagement_Tests
             Assert.That(result.Success, Is.True);
             Assert.That(result.Data!.Role, Is.EqualTo("User"));
         }
+
         [Test, Order(8)]
         public void DeleteAccount_ShouldRemoveUser_Test()
         {
@@ -190,7 +218,7 @@ namespace UserManagement_Tests
                 FirstName = "Silinecek",
                 LastName = "Kullanici",
                 Email = "silinecek@test.com",
-                Password = "123",
+                Password = BCrypt.Net.BCrypt.HashPassword("123"),
                 Role = "User"
             };
 
@@ -200,9 +228,12 @@ namespace UserManagement_Tests
             var isDeleted = _authService.DeleteAccount(userToDelete.Id);
 
             Assert.That(isDeleted, Is.True);
+
             var dbCheck = _context.Users.FirstOrDefault(u => u.Id == userToDelete.Id);
+
             Assert.That(dbCheck, Is.Null);
         }
+
         [Test, Order(9)]
         public void DeleteAccount_WithNonExistentId_ShouldReturnFalse_Test()
         {

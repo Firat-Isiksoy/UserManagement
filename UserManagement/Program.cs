@@ -19,6 +19,7 @@ builder.Services.AddScoped<IUserService,UserService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IWatchlistService, WatchlistService>();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -51,7 +52,15 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = jwtSettings["SecretKey"];
+var secretKey = builder.Configuration["JwtSettings:SecretKey"];
+
+if (string.IsNullOrEmpty(secretKey))
+{
+    throw new InvalidOperationException("KRÝTÝK HATA: JWT SecretKey bulunamadý! Lütfen User Secrets veya Environment Variables üzerinden ekleyin.");
+}
+
+var issuer = builder.Configuration["JwtSettings:Issuer"];
+var audience = builder.Configuration["JwtSettings:Audience"];
 
 builder.Services.AddAuthentication(options =>
 {
@@ -66,11 +75,9 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidAudience = jwtSettings["Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
-        RoleClaimType = ClaimTypes.Role,         
-        NameClaimType = ClaimTypes.NameIdentifier
+        ValidIssuer = issuer,
+        ValidAudience = audience,
+        IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(secretKey))
     };
 });
 builder.Services.AddAuthorization();
