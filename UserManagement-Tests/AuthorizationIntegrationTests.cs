@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using BCrypt.Net;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,8 +16,7 @@ namespace UserManagement_Tests
 {
     /// <summary>
     /// Gerçek HTTP pipeline'ını (Authentication + Authorization middleware, [Authorize] attribute'ları)
-    /// uçtan uca test eder. Eski AuthManagementTest'teki 401/403 testlerinin aksine,
-    /// bunlar gerçek middleware'i tetikler ve gerçek status code döner.
+    /// uçtan uca test eder.
     /// </summary>
     [TestFixture]
     public class AuthorizationIntegrationTests
@@ -32,17 +32,18 @@ namespace UserManagement_Tests
                 {
                     builder.ConfigureServices(services =>
                     {
-                        // Gerçek SqlServer DbContext kaydını kaldırıp yerine InMemory koyuyoruz.
                         var descriptor = services.SingleOrDefault(
                             d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
-                        if (descriptor != null) services.Remove(descriptor);
+
+                        if (descriptor != null)
+                            services.Remove(descriptor);
 
                         services.AddDbContext<AppDbContext>(options =>
                             options.UseInMemoryDatabase("AuthorizationIntegrationTestsDb"));
 
-                        // DB'yi seed'le
                         var sp = services.BuildServiceProvider();
                         using var scope = sp.CreateScope();
+
                         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                         db.Database.EnsureCreated();
 
@@ -55,7 +56,7 @@ namespace UserManagement_Tests
                                     FirstName = "Admin",
                                     LastName = "Test",
                                     Email = "admin@integration.test",
-                                    Password = "AdminPass123",
+                                    Password = BCrypt.Net.BCrypt.HashPassword("AdminPass123"),
                                     Role = "Admin"
                                 },
                                 new UserModel
@@ -64,10 +65,11 @@ namespace UserManagement_Tests
                                     FirstName = "Standard",
                                     LastName = "Test",
                                     Email = "user@integration.test",
-                                    Password = "UserPass123",
+                                    Password = BCrypt.Net.BCrypt.HashPassword("UserPass123"),
                                     Role = "User"
                                 }
                             );
+
                             db.SaveChanges();
                         }
                     });
@@ -82,7 +84,6 @@ namespace UserManagement_Tests
             _anonClient?.Dispose();
             _factory?.Dispose();
         }
-
         private async Task<string> GetTokenAsync(string email, string password)
         {
             var response = await _anonClient.PostAsJsonAsync("/api/auth/login", new LoginDto
@@ -92,24 +93,22 @@ namespace UserManagement_Tests
             });
 
             response.EnsureSuccessStatusCode();
+
             var result = await response.Content.ReadFromJsonAsync<ResponseModel<string>>();
+
             return result!.Data!;
         }
-
         private HttpClient CreateClientWithToken(string? token)
         {
             var client = _factory.CreateClient();
-            if (!string.IsNullOrEmpty(token))
+
+            if (!string.IsNullOrWhiteSpace(token))
             {
                 client.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", token);
             }
             return client;
         }
-
-        // ---------------------------------------------------------------
-        // 1) TOKEN YOK -> 401
-        // ---------------------------------------------------------------
         [Test]
         public async Task GetUsers_WithoutToken_Returns401()
         {
@@ -119,7 +118,6 @@ namespace UserManagement_Tests
 
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
         }
-
         [Test]
         public async Task DeleteUser_WithoutToken_Returns401()
         {
@@ -129,7 +127,6 @@ namespace UserManagement_Tests
 
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
         }
-
         [Test]
         public async Task DeleteUser_WithInvalidToken_Returns401()
         {
@@ -139,10 +136,6 @@ namespace UserManagement_Tests
 
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
         }
-
-        // ---------------------------------------------------------------
-        // 2) YANLIŞ ROL (User, Admin işlemi yapmaya çalışıyor) -> 403
-        // ---------------------------------------------------------------
         [Test]
         public async Task DeleteUser_WithNonAdminToken_Returns403()
         {
@@ -153,7 +146,6 @@ namespace UserManagement_Tests
 
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
         }
-
         [Test]
         public async Task CreateUser_WithNonAdminToken_Returns403()
         {
@@ -170,10 +162,6 @@ namespace UserManagement_Tests
 
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
         }
-
-        // ---------------------------------------------------------------
-        // 3) GEÇERLİ TOKEN + DOĞRU ROL -> BAŞARILI
-        // ---------------------------------------------------------------
         [Test]
         public async Task GetUsers_WithValidNonAdminToken_Returns200()
         {
@@ -184,7 +172,6 @@ namespace UserManagement_Tests
 
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         }
-
         [Test]
         public async Task CreateUser_WithAdminToken_Returns200()
         {
@@ -201,14 +188,11 @@ namespace UserManagement_Tests
 
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         }
-
         [Test]
         public async Task DeleteUser_WithAdminToken_Returns200()
         {
             var adminToken = await GetTokenAsync("admin@integration.test", "AdminPass123");
             var client = CreateClientWithToken(adminToken);
-
-            // Önce silinecek bir kullanıcı oluştur
             var createResponse = await client.PostAsJsonAsync("/api/user", new UserCreateDto
             {
                 FirstName = "Silinecek",
@@ -216,8 +200,12 @@ namespace UserManagement_Tests
                 Email = $"silinecek_{Guid.NewGuid()}@test.com",
                 Password = "GecerliSifre123"
             });
+
             createResponse.EnsureSuccessStatusCode();
-            var created = await createResponse.Content.ReadFromJsonAsync<ResponseModel<UserDetailsDto>>();
+
+            var created = await createResponse
+                .Content
+                .ReadFromJsonAsync<ResponseModel<UserDetailsDto>>();
 
             var response = await client.DeleteAsync($"/api/user/{created!.Data!.Id}");
 
